@@ -104,7 +104,7 @@ sub Set
   # we want a reference to the data to avoid copying it.
   # if it's already a reference, use that directly, else
   # make one.  also, if no buffer was passed, make an empty one.
-  my $valref = @_ ? ( ref($_[0]) ? $_[0] : \($_[0]) ) : \('');
+  my $valref = @_ && defined $_[0] ? ( ref($_[0]) ? $_[0] : \($_[0]) ) : \('');
 
   $attrs{len} = length($$valref) unless defined $attrs{len};
 
