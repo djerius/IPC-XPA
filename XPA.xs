@@ -1,3 +1,10 @@
+/*
+  (C) 2000 Smithsonian Astrophysical Observatory.  All rights reserved.
+
+  This program is free software; you can redistribute it and/or modify
+  it under the same terms as Perl itself.
+*/
+
 #ifdef __cplusplus
 extern "C" {
 #endif

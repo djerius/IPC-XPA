@@ -1,3 +1,8 @@
+# (C) 2000 Smithsonian Astrophysical Observatory.  All rights reserved.
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the same terms as Perl itself.
+
 package IPC::XPA;
 
 use strict;
@@ -274,6 +279,7 @@ This creates an XPA object.  C<mode> is a hash
 containing mode keywords and values, which will be translated into the
 string form used by B<XPAOpen()>.  The object will be destroyed when
 it goes out of scope; the B<XPAClose()> routine will automatically be called.
+It returns B<undef> upon failure.
 
 For example,
 

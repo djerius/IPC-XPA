@@ -10,11 +10,11 @@ please refer to
 	http://hea-www.harvard.edu/RD/xpa/
 
 
-This release provides an interface to the client side routines.
-
+This release provides an interface to most of the client side routines.
+Eventually the rest will be provided.
 
 INSTALLATION
-
+------------
 This package has been tested on Perl 5.005_01, and xpa 2.0.2.  The
 only platform it's been tested on is Solaris 2.6.
 
@@ -44,14 +44,13 @@ To install a private copy, try something like
 to generate the Makefile.
 
 COPYRIGHT
+---------
+(C) 2000 Smithsonian Astrophysical Observatory.  All rights reserved.
 
-  (C) 2000 Smithsonian Astrophysical Observatory
-
-The IPC::XPA Perl module is free software, and is relased under the
-same terms as Perl itself.  Please see the "README" file in the Perl
-distribution for more details.
+This program is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
 
 AUTHOR
-
+------
 Diab Jerius ( djerius@cfa.harvard.edu )
 
