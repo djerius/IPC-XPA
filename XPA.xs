@@ -36,6 +36,13 @@ _Open(mode)
 	OUTPUT:
 	RETVAL
 
+IPC_XPA
+nullXPA()
+	CODE:
+		RETVAL = NULL;
+	OUTPUT:
+	RETVAL
+
 
 void 
 _Close(xpa)

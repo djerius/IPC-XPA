@@ -1,5 +1,12 @@
 Revision history for Perl extension IPC::XPA.
 
+0.03  Thu May 11 13:51:01 EDT 2000
+	- nullXPA() was was returning something which caused
+	  the XS routines to complain about undef'd values.  it was
+	  moved into XS land, and a more sophisticated (kludgy?)
+	  thing was done to check for undef and mapping it correctly
+	  to NULL.
+
 0.02  Tue May  9 16:58:56 EDT 2000
 	- fixed test script to work if more than one server is running
 

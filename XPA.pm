@@ -22,7 +22,7 @@ require AutoLoader;
 @EXPORT = qw(
 	
 );
-$VERSION = '0.02';
+$VERSION = '0.03';
 
 sub AUTOLOAD {
     # This AUTOLOAD is used to 'autoload' constants from the constant()
@@ -57,15 +57,6 @@ sub _flatten_mode
   return '' unless keys %$mode;
 
   join( ',', map { "$_=" . $mode->{$_} } keys %$mode );
-}
-
-# return a reference to a scalar containing undef
-sub nullXPA
-{
-  my $class = shift;
-  my $sv = undef;
-  my $svrv = \$sv;
-  bless( $svrv, $class);
 }
 
 sub Open
@@ -161,7 +152,7 @@ sub DESTROY
 
     # if called as a class method (ref($obj) not defined)
     # create an essentially NULL pointer for pass to XPAGet
-    my $xpa = ref($obj) ? $obj->{xpa} : nullXPA($obj);
+    my $xpa = ref($obj) ? $obj->{xpa} : nullXPA();
 
     return _Set($xpa, $template, $paramlist, 
 		_flatten_mode( $attrs{mode} ),
@@ -190,7 +181,7 @@ sub DESTROY
 
     # if called as a class method (ref($obj) not defined)
     # create an essentially NULL pointer for pass to XPAGet
-    my $xpa = ref($obj) ? $obj->{xpa} : nullXPA($obj);
+    my $xpa = ref($obj) ? $obj->{xpa} : nullXPA();
 
     _Info($xpa, $template, $paramlist, 
 	 _flatten_mode( $attrs{mode} ),
