@@ -6,25 +6,17 @@
 # Change 1..1 below to 1..last_test_to_print .
 # (It may become useful if the test is moved to ./t subdirectory.)
 
+use Test::More qw( no_plan );
+
 use strict;
 use vars qw( $use_PDL $max_tests $test $loaded @res %res $verbose);
 
-BEGIN { $| = 1; 
+BEGIN { use_ok( 'IPC::XPA' );
 	$verbose = 0;
-	$max_tests = 9;
 
 	eval 'require PDL; PDL::import();';
 	$use_PDL = ! $@;
-	$max_tests++ if $use_PDL;
-
-	print "1..$max_tests\n"; 
       }
-END {print "not ok 1\n" unless $loaded;}
-
-use IPC::XPA;
-$test = 1;
-$loaded = 1;
-print "ok $test\n";
 
 ######################### End of black magic.
 
@@ -35,42 +27,38 @@ print "ok $test\n";
 use Data::Dumper;
 use constant XPASERVER => 'ds9';
 
-$test++;
+my $connect;
+
 # check connectivity
+my %res = IPC::XPA->Access( XPASERVER, "gs" );
 
 # set connect to -1 on failure so all of the remaining tests fail
-print "\n$test: Access\n" if $verbose;
-my $connect = IPC::XPA->Access( XPASERVER, "gs" ) || -1;
-print "Unable to connect to server `", XPASERVER, "'; most tests will fail.\n" 
-  if $connect < 1;
-print 'not ' unless $connect > 0;
-print "ok $test\n";
+unless ( keys %res && _chk_message( 0, %res ) )
+{
+  print "Unable to connect to server `", XPASERVER, "'; most tests will fail.\n";
+  $connect = -1;
+}
+else
+{
+  $connect = keys %res;
+}
+
+ok( $connect > -1, 'Access' );
 
 my %attr = ( max_servers => ($connect > 0 ? $connect : 0 ) );
 
 # try a lookup
-$test++;
-print "\n$test: NSLookup\n" if $verbose;
 @res = IPC::XPA->NSLookup( 'ds9', 'ls' );
-print Dumper(\@res) if $verbose;
-print 'not ' unless @res == $connect;
-print "ok $test\n";
+ok( @res == $connect, 'NSLookup' );
+
 
 # create a new XPA handle
-$test++;
-print "\n$test: Open\n" if $verbose;
 my $xpa = IPC::XPA->Open( { verify => 'true' } );
-print 'not ' unless defined $xpa;
-print "ok $test\n";
-
+ok( defined $xpa, 'Open' );
 
 # grab ds9 version
-$test++;
-print "\n$test: Get version\n" if $verbose;
 %res = $xpa->Get( 'ds9', 'version', \%attr );
-print Dumper(\%res) if $verbose;
-_chk_message( $connect, %res );
-print "ok $test\n";
+ok( _chk_message( $connect, %res ), 'Get version' );
 
 # make sure version(s) of ds9 are current enough.
 while( my ( $server, $res ) = each %res )
@@ -87,66 +75,47 @@ while( my ( $server, $res ) = each %res )
 }
 
 
-$test++;
-print "\n$test: Get 1\n" if $verbose;
 %res = $xpa->Get( 'ds9', '-help quit', \%attr );
-print Dumper(\%res) if $verbose;
-_chk_message( $connect, %res );
-print "ok $test\n";
+ok( _chk_message( $connect, %res ), 'Get 1');
 
-$test++;
-print "\n$test: Get 2\n" if $verbose;
 my %res = $xpa->Get( 'ds9', '-help quit',
 		     { mode => { ack => 'true' }, %attr });
-print Dumper(\%res) if $verbose;
-_chk_message( $connect, %res );
-print "ok $test\n";
+ok( _chk_message( $connect, %res ), 'Get 2' );
 
-$test++;
-print "\n$test: Set 1\n" if $verbose;
 %res = $xpa->Set( 'ds9', 'mode crosshair', \%attr );
-print Dumper(\%res) if $verbose;
-_chk_message( $connect, %res );
-print "ok $test\n";
+ok( _chk_message( $connect, %res ), 'Set 1' );
 
-$test++;
-print "\n$test: Set 2\n" if $verbose;
 %res = $xpa->Set( 'ds9', 'mode crosshair',
 		     { mode => { ack => 'true' }, %attr });
-print Dumper(\%res) if $verbose;
-_chk_message( $connect, %res );
-print "ok $test\n";
+ok( _chk_message( $connect, %res ), 'Set 2' );
 
-$test++;
-print "\n$test: Set 3\n" if $verbose;
 %res = IPC::XPA->Set( 'ds9', 'mode pointer',
 		     { mode => { ack => 'true' }, %attr });
-print Dumper(\%res) if $verbose;
-_chk_message( $connect, %res );
-print "ok $test\n";
+ok( _chk_message( $connect, %res ), 'Set 3' );
 
 if ( $use_PDL )
 {
   my $k = zeroes(double(), 100,100)->rvals;
   
-  $test++;
-  print "\n$test: array\n" if $verbose;
   %res = $xpa->Set( 'ds9', 'array [dim=100,bitpix=-64]', 
 		    ${$k->get_dataref}, \%attr);
-  print Dumper(\%res) if $verbose;
-  _chk_message( $connect, %res );
-  print "ok $test\n";
+  ok( _chk_message( $connect, %res ), 'array' );
 }
 
 sub _chk_message
 {
   my ( $connect, %res ) = @_;
-  if ( keys %res != $connect )
+  my $ok = 1;
+  if ( $connect != 0 && keys %res != $connect )
   {
-    print 'not ';
+    $ok = 0;
   }
   else
   {
-    print 'not ' if grep { defined $_->{message} } values %res;
+    $ok = 0 if grep { defined $_->{message} } values %res;
   }
+
+  print Dumper \%res if $verbose;
+
+  $ok;
 }
