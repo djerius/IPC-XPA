@@ -60,10 +60,12 @@ sub _flatten_mode
 }
 
 # return a reference to a scalar containing undef
-sub _undef_svrv
+sub nullXPA
 {
+  my $class = shift;
   my $sv = undef;
-  \$sv;
+  my $svrv = \$sv;
+  bless( $svrv, $class);
 }
 
 sub Open
@@ -106,7 +108,7 @@ sub DESTROY
 
     # if called as a class method (ref($obj) not defined)
     # create an essentially NULL pointer for pass to XPAGet
-    my $xpa = ref($obj) ? $obj->{xpa} : bless(_undef_svrv(), $obj);
+    my $xpa = ref($obj) ? $obj->{xpa} : null_XPA($obj);
 
     _Get($xpa, $template, $paramlist, 
 	 _flatten_mode( $attrs{mode} ),
@@ -124,10 +126,9 @@ sub DESTROY
 
     @_ >=2 && @_ <= 4 or goto SetError;
 
-    my $buf = '';
     my $attrs;
-    my ( $template, $paramlist, $buf );
 
+    my $buf;
     my $template = shift;
     my $paramlist = shift;
 
@@ -153,12 +154,14 @@ sub DESTROY
       ( $buf, $attrs ) = @_;
     }
 
+    $buf ||= '';
+
     my %attrs = ( %def_attrs, $attrs ? %$attrs : () );
     $attrs{len} = length($buf) unless defined $attrs{len};
 
     # if called as a class method (ref($obj) not defined)
     # create an essentially NULL pointer for pass to XPAGet
-    my $xpa = ref($obj) ? $obj->{xpa} : bless(_undef_svrv(), $obj);
+    my $xpa = ref($obj) ? $obj->{xpa} : nullXPA($obj);
 
     return _Set($xpa, $template, $paramlist, 
 		_flatten_mode( $attrs{mode} ),
@@ -187,7 +190,7 @@ sub DESTROY
 
     # if called as a class method (ref($obj) not defined)
     # create an essentially NULL pointer for pass to XPAGet
-    my $xpa = ref($obj) ? $obj->{xpa} : bless(_undef_svrv(), $obj);
+    my $xpa = ref($obj) ? $obj->{xpa} : nullXPA($obj);
 
     _Info($xpa, $template, $paramlist, 
 	 _flatten_mode( $attrs{mode} ),
@@ -230,6 +233,8 @@ IPC::XPA - Interface to the XPA messaging system
 
   $xpa = IPC::XPA->Open();
   $xpa = IPC::XPA->Open(\%mode);
+  $xpa = IPC::XPA->nullXPA;
+
 
   @res = $xpa->Get( $template, $paramlist );
   @res = $xpa->Get( $template, $paramlist, \%attrs );
@@ -269,6 +274,16 @@ routines with C<XPA>).
 =head2 Class Methods
 
 =over 8
+
+=item nullXPA
+
+	$xpa = XPA::IPC->nullXPA;
+
+This creates an xpa object which is equivalent to a NULL XPA handle as
+far as the underlying XPA routines are concerned.  It can be used to
+create a default XPA object, as it it guaranteed to succeed (the
+B<Open()> method may fail).
+
 
 =item Open
 
