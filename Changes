@@ -1,5 +1,21 @@
 Revision history for Perl extension IPC::XPA.
 
+
+0.04    Wed Aug  2 12:08:26 EDT 2000
+        - revamped returns from _Set() and _Get(); these now return
+	  a hash keyed off of the server name (as returned by XPA),
+	  with values being hashes with the returned results.
+	  previously it returned an array of the hashes with returned
+	  results.  THIS IS A MAJOR API CHANGE and WILL BREAK CODE.
+
+	- the XPA handle had been blessed into IPC::XPA, but the
+  	  IPC::XPA::DESTROY routine was set up to handle what
+	  IPC::XPA::new created, namely a hash, not a scalar.  Thus,
+	  when Perl cleanup was going on, it called DESTROY on the
+	  scalar, causing it to burp.  To solve this, the XPA handle is
+	  now in it's own class, IPC::XPA::RAW.
+
+
       Thu Jul  6 09:30:49 EDT 2000
         - test script set max_servers to -1 when no servers were
           there, causing _Get to try to allocate that many things.

@@ -24,11 +24,11 @@ extern "C" {
 #define X_MODE     "mode"
 #define L_MODE	   strlen(X_MODE)
 
-typedef XPA IPC_XPA;
+typedef XPA IPC_XPA_RAW;
 
 MODULE = IPC::XPA		PACKAGE = IPC::XPA		
 
-IPC_XPA
+IPC_XPA_RAW
 _Open(mode)
 	char* mode
 	CODE:
@@ -36,7 +36,7 @@ _Open(mode)
 	OUTPUT:
 	RETVAL
 
-IPC_XPA
+IPC_XPA_RAW
 nullXPA()
 	CODE:
 		RETVAL = NULL;
@@ -46,13 +46,13 @@ nullXPA()
 
 void 
 _Close(xpa)
-	IPC_XPA	xpa
+	IPC_XPA_RAW	xpa
 	CODE:
 	XPAClose(xpa);
 
 void
 _Get(xpa, xtemplate, paramlist, mode, max_servers )
-	IPC_XPA	xpa
+	IPC_XPA_RAW	xpa
 	char*	xtemplate
 	char*	paramlist
 	char*   mode
@@ -74,10 +74,13 @@ _Get(xpa, xtemplate, paramlist, mode, max_servers )
 		ns = XPAGet(xpa, xtemplate, paramlist, mode, bufs, lens,
 		    	names, messages, max_servers);
 		/* convert result into something Perlish */
+		EXTEND(SP, 2*ns);
 		for ( i = 0 ; i < ns ; i++ )
 		{
+		  /* push the name of the server */
+		  PUSHs( sv_2mortal(newSVpv(names[i],0)) );
   		  /* push a reference to the hash onto the stack */
-		  XPUSHs( sv_2mortal(newRV_noinc((SV*)
+		  PUSHs( sv_2mortal(newRV_noinc((SV*)
 				    cdata2hash_Get(bufs[i],lens[i],names[i],
 					       messages[i] ))) );
 		  free( names[i] );
@@ -88,13 +91,13 @@ _Get(xpa, xtemplate, paramlist, mode, max_servers )
 		Safefree( lens );
 		Safefree( names );
 		Safefree( messages );
-	
+
 
 #undef NMARGS
 #define NMARGS 3
 void
 _Set(xpa, xtemplate, paramlist, mode, buf, len, max_servers )
-	IPC_XPA	xpa
+	IPC_XPA_RAW	xpa
 	char*	xtemplate
 	char*	paramlist
 	char*   mode
@@ -117,10 +120,13 @@ _Set(xpa, xtemplate, paramlist, mode, buf, len, max_servers )
 		ns = XPASet(xpa, xtemplate, paramlist, mode, buf, len,
 		    	names, messages, max_servers);
 		/* convert result into something Perlish */
+		EXTEND(SP, 2*ns);
 		for ( i = 0 ; i < ns ; i++ )
 		{
+		  /* push the name of the server */
+		  PUSHs( sv_2mortal(newSVpv(names[i],0)) );
   		  /* Now, push a reference to the hash onto the stack */
-		  XPUSHs( sv_2mortal(newRV_noinc((SV*)
+		  PUSHs( sv_2mortal(newRV_noinc((SV*)
 				    cdata2hash_Set(names[i], messages[i] ))) );
 		  free( names[i] );
 		  free( messages[i] );
@@ -132,7 +138,7 @@ _Set(xpa, xtemplate, paramlist, mode, buf, len, max_servers )
 
 void
 _Info(xpa, xtemplate, paramlist, mode, max_servers )
-	IPC_XPA	xpa
+	IPC_XPA_RAW	xpa
 	char*	xtemplate
 	char*	paramlist
 	char*	mode
@@ -150,10 +156,13 @@ _Info(xpa, xtemplate, paramlist, mode, max_servers )
 		ns = XPAInfo(xpa, xtemplate, paramlist, mode,
 		    	names, messages, max_servers);
 		/* convert result into something Perlish */
+		EXTEND(SP, 2*ns);
 		for ( i = 0 ; i < ns ; i++ )
 		{
+		  /* push the name of the server */
+		  PUSHs( sv_2mortal(newSVpv(names[i],0)) );
   		  /* Now, push a reference to the hash onto the stack */
-		  XPUSHs( sv_2mortal(newRV_noinc((SV*)
+		  PUSHs( sv_2mortal(newRV_noinc((SV*)
 				    cdata2hash_Set(names[i], messages[i] ))) );
 		  free( names[i] );
 		  free( messages[i] );
@@ -175,10 +184,11 @@ _NSLookup(tname, ttype)
 	PPCODE:
 		ns = XPANSLookup(tname, ttype, &xclasses, &names, &methods);
 		/* convert result into something Perlish */
+		EXTEND(SP, ns);
 		for ( i = 0 ; i < ns ; i++ )
 		{
   		  /* Now, push a reference to the hash onto the stack */
-		  XPUSHs( sv_2mortal(newRV_noinc((SV*)
+		  PUSHs( sv_2mortal(newRV_noinc((SV*)
 				    cdata2hash_Lookup(xclasses[i],
 						      names[i],
 						      methods[i] ))) );

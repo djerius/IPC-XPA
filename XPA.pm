@@ -22,7 +22,7 @@ require AutoLoader;
 @EXPORT = qw(
 	
 );
-$VERSION = '0.03';
+$VERSION = '0.04';
 
 sub AUTOLOAD {
     # This AUTOLOAD is used to 'autoload' constants from the constant()
@@ -67,14 +67,14 @@ sub Open
   # _Open will bless $xpa into the IPC::XPA class, but
   # need to worry about inheritance.
   my $xpa = _Open( _flatten_mode( $mode ) );
-  bless { xpa => $xpa, open => 1 }, $class;
+  bless { xpa => $xpa }, $class;
 }
 
 sub Close
 {
   my $xpa = shift;
-  _Close( $xpa->{xpa} ) if $xpa->{Open};
-  $xpa->{open} = 0;
+  _Close( $xpa->{xpa} ) if defined $xpa->{xpa};
+  undef $xpa->{xpa};
 }
 
 sub DESTROY
@@ -227,16 +227,16 @@ IPC::XPA - Interface to the XPA messaging system
   $xpa = IPC::XPA->nullXPA;
 
 
-  @res = $xpa->Get( $template, $paramlist );
-  @res = $xpa->Get( $template, $paramlist, \%attrs );
+  %res = $xpa->Get( $template, $paramlist );
+  %res = $xpa->Get( $template, $paramlist, \%attrs );
 
-  @res = $xpa->Set( $template, $paramlist );
-  @res = $xpa->Set( $template, $paramlist, $buf );
-  @res = $xpa->Set( $template, $paramlist, $buf, \%attrs );
-  @res = $xpa->Set( $template, $paramlist, \%attrs );
+  %res = $xpa->Set( $template, $paramlist );
+  %res = $xpa->Set( $template, $paramlist, $buf );
+  %res = $xpa->Set( $template, $paramlist, $buf, \%attrs );
+  %res = $xpa->Set( $template, $paramlist, \%attrs );
 
-  @res = $xpa->Info( $template, $paramlist );
-  @res = $xpa->Info( $template, $paramlist, \%attrs );
+  %res = $xpa->Info( $template, $paramlist );
+  %res = $xpa->Info( $template, $paramlist, \%attrs );
   
   $nservers = IPC::XPA->Access( $name, $type );
 
@@ -244,11 +244,11 @@ IPC::XPA - Interface to the XPA messaging system
 
 =head1 DESCRIPTION
 
-This class provides access to the XPA messaging system library, C<xpa>,
-developed by the Smithsonian Astrophysical Observatory's High Energy
-Astrophysics R&D Group.  The library provides simple inter-process
-communication via calls to the C<xpa> library as well as via supplied
-user land programs.
+This class provides access to the XPA messaging system library,
+C<xpa>, developed by the Smithsonian Astrophysical Observatory's High
+Energy Astrophysics R&D Group.  The library provides simple
+inter-process communication via calls to the C<xpa> library as well as
+via supplied user land programs.
 
 The method descriptions below do not duplicate the contents of the
 documentation provided with the C<xpa> library.
@@ -281,11 +281,11 @@ B<Open()> method may fail).
 	$xpa = XPA::IPC->Open();
 	$xpa = XPA::IPC->Open( \%mode );
 
-This creates an XPA object.  C<mode> is a hash
-containing mode keywords and values, which will be translated into the
-string form used by B<XPAOpen()>.  The object will be destroyed when
-it goes out of scope; the B<XPAClose()> routine will automatically be called.
-It returns B<undef> upon failure.
+This creates an XPA object.  C<mode> is a hash containing mode
+keywords and values, which will be translated into the string form
+used by B<XPAOpen()>.  The object will be destroyed when it goes out
+of scope; the B<XPAClose()> routine will automatically be called.  It
+returns B<undef> upon failure.
 
 For example,
 
@@ -311,8 +311,8 @@ and access type.  See the XPA docs for more information.
 	@res = XPA::IPC->NSLookup( $template, $type )
 
 This calls the XPANSLookup routine.  It returns the results of the
-lookup as a list of references to hashes, one per match.  The hashes
-have the keys C<name>, C<class>, C<method>.  For example,
+lookup as a list of references to hashes, one per server. The hashes
+have the keys C<name> C<class>, and C<method>.  For example,
 
 	use Data::Dumper;
 	@res = XPA::IPC->NSLookup( 'ds9', 'ls' );
@@ -328,6 +328,10 @@ results in
 	          }
 	        ];
 
+Note that names returned by B<NSLookup> are different than those
+returned by the B<Set> and B<Get> methods; the latter return names
+which are essentially composites of the C<name> and C<method> keys.
+
 See the XPA docs for more information the C<template> and C<type>
 specification.
 
@@ -339,7 +343,7 @@ B<XPASet()> with a C<NULL> handle to the B<xpa> object.
 
 For example,
 
-	@res = IPC::XPA->Set( $template, $paramlist );
+	%res = IPC::XPA->Set( $template, $paramlist );
 
 =item Get
 
@@ -349,7 +353,7 @@ B<XPAGet()> with a C<NULL> handle to the B<xpa> object.
 
 For example,
 
-	@res = IPC::XPA->Get( $template, $paramlist );
+	%res = IPC::XPA->Get( $template, $paramlist );
 
 
 =item Info
@@ -360,7 +364,7 @@ B<XPAInfo()> with a C<NULL> handle to the B<xpa> object.
 
 For example,
 
-	@res = IPC::XPA->Info( $template, $paramlist );
+	%res = IPC::XPA->Info( $template, $paramlist );
 
 
 =back
@@ -371,16 +375,17 @@ For example,
 
 =item Set
 
-	@res = $xpa->Set( $template, $paramlist );
-	@res = $xpa->Set( $template, $paramlist, $buf );
-	@res = $xpa->Set( $template, $paramlist, $buf, \%attrs );
-	@res = $xpa->Set( $template, $paramlist, \%attrs );
+	%res = $xpa->Set( $template, $paramlist );
+	%res = $xpa->Set( $template, $paramlist, $buf );
+	%res = $xpa->Set( $template, $paramlist, $buf, \%attrs );
+	%res = $xpa->Set( $template, $paramlist, \%attrs );
 
 Send data to the XPA server(s) specified by B<$template>.  B<$xpa> is
-a reference to an XPA object created by C<Open()>. B<$paramlist> specifies the command
-to be performed.  If additional information is to be sent, the B<$buf>
-parameter should be specified.  The B<%attrs> hash specifies optional
-parameters and values to be sent.  The following are available:
+a reference to an XPA object created by C<Open()>. B<$paramlist>
+specifies the command to be performed.  If additional information is
+to be sent, the B<$buf> parameter should be specified.  The B<%attrs>
+hash specifies optional parameters and values to be sent.  The
+following are available:
 
 =over 8
 
@@ -401,33 +406,33 @@ will be translated into the string form used by B<XPASet()>.
 
 =back
 
-It returns a list of references to hashes, one per server.  The hashes
-will contain the key C<name>, indicating the server's name.  If there
-was an error, the hash will also contain the key C<message>.  See
-the B<XPASet> documentation for more information on the C<name> and
+It returns a hash keyed off of the server names.  The hash values are
+references to hashes, which will contain the key C<name> (duplicating the
+server name), and if there was an error, the key C<message>.  See the
+B<XPASet> documentation for more information on the C<name> and
 C<message> values.
 
 For example,
 
-	@res = $xpa->Set( 'ds9', 'mode crosshair' );
+	%res = $xpa->Set( 'ds9', 'mode crosshair' );
 
 	use Data::Dumper;
-	@res = $xpa->Set( 'ds9', 'array [dim=100,bitpix=-64]', $buf, 
+	%res = $xpa->Set( 'ds9', 'array [dim=100,bitpix=-64]', $buf, 
 			  { mode => { ack => false } });
-	print Dumper \@res, "\n";
+	print Dumper \%res, "\n";
 
 The latter might result in:
 
-	$VAR1 = [
-	          {
-	            'name' => 'DS9:ds9 838e2ab4:46529'
-	          }
-	        ];
+	$VAR1 = {
+          'DS9:ds9 838e2ab4:65223' => {
+                                        'name' => 'DS9:ds9 838e2ab4:65223'
+                                      },
+        };
 
 =item Get
 
-	@res = $xpa->Get( $template, $paramlist );
-	@res = $xpa->Get( $template, $paramlist, \%attrs );
+	%res = $xpa->Get( $template, $paramlist );
+	%res = $xpa->Get( $template, $paramlist, \%attrs );
 
 Retrieve data from the servers specified by the B<$template>
 parameter.  B<$xpa> is a reference to an XPA object created by
@@ -449,33 +454,32 @@ will be translated into the string form used by B<XPAGet()>
 
 =back
 
-It returns a list of references to hashes, one per server.  The hashes
-will contain the key C<name>, indicating the server's name, and C<buf>
-which will contain the returned data.  If there
-was an error, the hash will also contain the key C<message>.  See
-the B<XPAGet> documentation for more information on the C<name> and
-C<message> values.
+It returns a hash keyed off of the server names.  The hashe values are
+references to hashes, which will have the keys C<name>, indicating the
+server's name, and C<buf> which will contain the returned data.  If
+there was an error, the hashes will also contain the key C<message>.
+See the B<XPAGet> documentation for more information on the C<name>
+and C<message> values.
 
 For example,
 
 	use Data::Dumper;
-	@res = $xpa->Get( 'ds9', '-help quit' );
-	print Dumper(\@res);
+	%res = $xpa->Get( 'ds9', '-help quit' );
+	print Dumper(\%res);
 
 might result in
 
-	$VAR1 = [
-	          {
+	$VAR1 = {
+	         'DS9:ds9 838e2ab4:46529' => {
 	            'name' => 'DS9:ds9 838e2ab4:46529',
-	            'buf' => 'quit:	-- exit application
-	'
+	            'buf' => 'quit:	-- exit application'
 	          }
-	        ];
+	        };
 
 =item Info
 
-	@res = $xpa->Info( $template, $paramlist);
-	@res = $xpa->Info( $template, $paramlist, \%attrs );
+	%res = $xpa->Info( $template, $paramlist);
+	%res = $xpa->Info( $template, $paramlist, \%attrs );
 
 Send a short message (in B<$paramlist>) to the servers specified in
 the B<$template> parameter.  B<$xpa> is a reference to an XPA object
@@ -496,11 +500,12 @@ will be translated into the string form used by B<XPAGet()>
 
 =back
 
-It returns a list of references to hashes, one per server.  The hashes
-will contain the key C<name>, indicating the server's name.  If there
-was an error or the server replied with a message, the hash will also
-contain the key C<message>.  See the B<XPAGet> documentation for more
-information on the C<name> and C<message> values.
+It returns a hash keyed off of the server names.  The hash values are
+references to hashes, which will contain the the key C<name>,
+indicating the server's name.  If there was an error or the server
+replied with a message, the hashes will also contain the key
+C<message>.  See the B<XPAGet> documentation for more information on
+the C<name> and C<message> values.
 
 =back
 

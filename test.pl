@@ -7,7 +7,7 @@
 # (It may become useful if the test is moved to ./t subdirectory.)
 
 use strict;
-use vars qw( $use_PDL $max_tests $test $loaded @res $verbose);
+use vars qw( $use_PDL $max_tests $test $loaded @res %res $verbose);
 
 BEGIN { $| = 1; 
 	$verbose = 0;
@@ -67,18 +67,18 @@ print "ok $test\n";
 # grab ds9 version
 $test++;
 print "\n$test: Get version\n" if $verbose;
-@res = $xpa->Get( 'ds9', 'version', \%attr );
-print Dumper(\@res) if $verbose;
-_chk_message( $connect, @res );
+%res = $xpa->Get( 'ds9', 'version', \%attr );
+print Dumper(\%res) if $verbose;
+_chk_message( $connect, %res );
 print "ok $test\n";
 
 # make sure version(s) of ds9 are current enough.
-foreach my $res (@res)
+while( my ( $server, $res ) = each %res )
 {
   my $version;
   unless ( ($version) = $res->{buf} =~ /\b([1-9.]+)\b/ )
   {
-    warn( "unable to parse version string: $res->{buf}\n" );
+    warn( "unable to parse version string for server `$server': $res->{buf}\n" );
     next;
   }
   warn( "DS9 version $version has not been tested with this module.\n",
@@ -89,40 +89,40 @@ foreach my $res (@res)
 
 $test++;
 print "\n$test: Get 1\n" if $verbose;
-@res = $xpa->Get( 'ds9', '-help quit', \%attr );
-print Dumper(\@res) if $verbose;
-_chk_message( $connect, @res );
+%res = $xpa->Get( 'ds9', '-help quit', \%attr );
+print Dumper(\%res) if $verbose;
+_chk_message( $connect, %res );
 print "ok $test\n";
 
 $test++;
 print "\n$test: Get 2\n" if $verbose;
-my @res = $xpa->Get( 'ds9', '-help quit',
+my %res = $xpa->Get( 'ds9', '-help quit',
 		     { mode => { ack => 'true' }, %attr });
-print Dumper(\@res) if $verbose;
-_chk_message( $connect, @res );
+print Dumper(\%res) if $verbose;
+_chk_message( $connect, %res );
 print "ok $test\n";
 
 $test++;
 print "\n$test: Set 1\n" if $verbose;
-@res = $xpa->Set( 'ds9', 'mode crosshair', \%attr );
-print Dumper(\@res) if $verbose;
-_chk_message( $connect, @res );
+%res = $xpa->Set( 'ds9', 'mode crosshair', \%attr );
+print Dumper(\%res) if $verbose;
+_chk_message( $connect, %res );
 print "ok $test\n";
 
 $test++;
 print "\n$test: Set 2\n" if $verbose;
-@res = $xpa->Set( 'ds9', 'mode crosshair',
+%res = $xpa->Set( 'ds9', 'mode crosshair',
 		     { mode => { ack => 'true' }, %attr });
-print Dumper(\@res) if $verbose;
-_chk_message( $connect, @res );
+print Dumper(\%res) if $verbose;
+_chk_message( $connect, %res );
 print "ok $test\n";
 
 $test++;
 print "\n$test: Set 3\n" if $verbose;
-@res = IPC::XPA->Set( 'ds9', 'mode pointer',
+%res = IPC::XPA->Set( 'ds9', 'mode pointer',
 		     { mode => { ack => 'true' }, %attr });
-print Dumper(\@res) if $verbose;
-_chk_message( $connect, @res );
+print Dumper(\%res) if $verbose;
+_chk_message( $connect, %res );
 print "ok $test\n";
 
 if ( $use_PDL )
@@ -131,22 +131,22 @@ if ( $use_PDL )
   
   $test++;
   print "\n$test: array\n" if $verbose;
-  @res = $xpa->Set( 'ds9', 'array [dim=100,bitpix=-64]', 
+  %res = $xpa->Set( 'ds9', 'array [dim=100,bitpix=-64]', 
 		    ${$k->get_dataref}, \%attr);
-  print Dumper(\@res) if $verbose;
-  _chk_message( $connect, @res );
+  print Dumper(\%res) if $verbose;
+  _chk_message( $connect, %res );
   print "ok $test\n";
 }
 
 sub _chk_message
 {
-  my ( $connect, @res ) = @_;
-  if ( @res != $connect )
+  my ( $connect, %res ) = @_;
+  if ( keys %res != $connect )
   {
     print 'not ';
   }
   else
   {
-    print 'not ' if grep { defined $_->{message} } @res;
+    print 'not ' if grep { defined $_->{message} } values %res;
   }
 }
