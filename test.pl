@@ -99,7 +99,14 @@ if ( $use_PDL )
   
   %res = $xpa->Set( 'ds9', 'array [dim=100,bitpix=-64]', 
 		    ${$k->get_dataref}, \%attr);
+
   ok( _chk_message( $connect, %res ), 'array' );
+
+  $k = $k->max - $k;
+  %res = $xpa->Set( 'ds9', 'array [dim=100,bitpix=-64]', 
+		    $k->get_dataref, \%attr);
+
+  ok( _chk_message( $connect, %res ), 'array scalar ref' );
 }
 
 sub _chk_message

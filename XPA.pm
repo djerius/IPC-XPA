@@ -21,7 +21,7 @@ require DynaLoader;
 @EXPORT = qw(
 	
 );
-$VERSION = '0.07';
+$VERSION = '0.08';
 
 bootstrap IPC::XPA $VERSION;
 
@@ -98,20 +98,23 @@ sub Set
 
   my $template = shift;
   my $paramlist = shift;
-  my $buf = shift;
-
-  $buf ||= '';
 
   my %attrs = ( %def_attrs, $attrs ? %$attrs : () );
-  $attrs{len} = length($buf) unless defined $attrs{len};
+
+  # we want a reference to the data to avoid copying it.
+  # if it's already a reference, use that directly, else
+  # make one.  also, if no buffer was passed, make an empty one.
+  my $valref = @_ ? ( ref($_[0]) ? $_[0] : \($_[0]) ) : \('');
+
+  $attrs{len} = length($$valref) unless defined $attrs{len};
 
   # if called as a class method (ref($obj) not defined)
   # create an essentially NULL pointer for pass to XPAGet
   my $xpa = ref($obj) ? $obj->{xpa} : nullXPA();
 
   _Set($xpa, $template, $paramlist, 
-	      _flatten_mode( $attrs{mode} ),
-	      $buf, $attrs{len}, $attrs{max_servers} );
+       _flatten_mode( $attrs{mode} ),
+       $$valref, $attrs{len}, $attrs{max_servers} );
 }
 
 
