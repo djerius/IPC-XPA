@@ -24,6 +24,10 @@ extern "C" {
 #define X_MODE     "mode"
 #define L_MODE	   strlen(X_MODE)
 
+/* catch error from pre 2.1 server -- if we find this error, we know the
+   access point is available */
+#define OLD_SERVER(s) strstr(s, "invalid xpa command in initialization string")
+
 typedef XPA IPC_XPA_RAW;
 
 MODULE = IPC::XPA		PACKAGE = IPC::XPA		
@@ -172,17 +176,20 @@ _Info(xpa, xtemplate, paramlist, mode, max_servers )
 		Safefree( messages );
 
 void
-_NSLookup(tname, ttype)
+_NSLookup(xpa, tname, ttype)
+	IPC_XPA_RAW	xpa
 	char*	tname
 	char*	ttype
 	PREINIT:
 		char **xclasses;
 		char **names;
 		char **methods;
+		char **infos;
 		int i;
 		int ns;
 	PPCODE:
-		ns = XPANSLookup(tname, ttype, &xclasses, &names, &methods);
+		ns = XPANSLookup( xpa, tname, ttype, &xclasses, &names, 
+                                 &methods, &infos );
 		/* convert result into something Perlish */
 		EXTEND(SP, ns);
 		for ( i = 0 ; i < ns ; i++ )
@@ -191,20 +198,59 @@ _NSLookup(tname, ttype)
 		  PUSHs( sv_2mortal(newRV_noinc((SV*)
 				    cdata2hash_Lookup(xclasses[i],
 						      names[i],
-						      methods[i] ))) );
+						      methods[i],
+						      infos[i]
+						       ))) );
 		  free( xclasses[i] );
 		  free( names[i] );
 		  free( methods[i] );
+		  free( infos[i] );
 		}
 		free( xclasses );
 		free( names );
 		free( methods );
+		free( infos );
 
-int
-_Access (tname, ttype)
-	char *tname
-	char *ttype
-	CODE:
-		RETVAL = XPAAccess( tname, ttype );
-	OUTPUT:
-		RETVAL
+void
+_Access(xpa, xtemplate, paramlist, mode, max_servers )
+	IPC_XPA_RAW	xpa
+	char*	xtemplate
+	char*	paramlist
+	char*	mode
+	int	max_servers
+	PREINIT:
+		char **names;
+		char **messages;
+		int i;
+		int ns;
+	PPCODE:
+		/* allocate return arrays */
+		New( 0, names, max_servers, char *);
+		New( 0, messages, max_servers, char *);
+		/* send request to server */
+		ns = XPAAccess(xpa, xtemplate, paramlist, mode,
+		    	names, messages, max_servers);
+		/* convert result into something Perlish */
+		EXTEND(SP, 2*ns);
+		for ( i = 0 ; i < ns ; i++ )
+		{
+		  /* push the name of the server */
+		  PUSHs( sv_2mortal(newSVpv(names[i],0)) );
+
+		  /* older servers than 2.1 will react with an error
+		     to the access command; they're there (because
+		     we see the error) */
+		  if ( messages[i] && OLD_SERVER(messages[i]) )
+		  {
+		    free( messages[i] );
+		    messages[i] = NULL;
+		  }
+  		  /* Now, push a reference to the hash onto the stack */
+		  PUSHs( sv_2mortal(newRV_noinc((SV*)
+				    cdata2hash_Set(names[i], messages[i] ))) );
+		  free( names[i] );
+		  free( messages[i] );
+		}
+		/* free up memory that's no longer needed */
+		Safefree( names );
+		Safefree( messages );
