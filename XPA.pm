@@ -21,11 +21,14 @@ require DynaLoader;
 @EXPORT = qw(
 	
 );
-$VERSION = '0.05';
+$VERSION = '0.06';
 
 bootstrap IPC::XPA $VERSION;
 
 # Preloaded methods go here.
+
+# default attributes for Get, Set, Info, Access
+my %def_attrs = ( max_servers => 1, mode => {} );
 
 sub _flatten_mode
 {
@@ -60,129 +63,131 @@ sub DESTROY
 }
 
 
+sub Get
 {
-  my %def_attrs = ( max_servers => 1, mode => {} );
+  my $obj = shift;
   
-  sub Get
-  {
-    my $obj = shift;
-    
-    @_ == 2 || ( @_ == 3 && 'HASH' eq ref($_[2]) ) or
-      croak( 'usage: IPC::XPA::Get($xpa, $template, $paramlist [,\%attrs]');
-    
-    my ( $template, $paramlist, $attrs ) = @_;
-
-    my %attrs = ( %def_attrs, $attrs ? %$attrs : () );
-
-    # if called as a class method (ref($obj) not defined)
-    # create an essentially NULL pointer for pass to XPAGet
-    my $xpa = ref($obj) ? $obj->{xpa} : null_XPA($obj);
-
-    _Get($xpa, $template, $paramlist, 
-	 _flatten_mode( $attrs{mode} ),
-	 $attrs{max_servers} );
-  }
+  @_ == 2 || ( @_ == 3 && 'HASH' eq ref($_[2]) ) or
+    croak( 'usage: IPC::XPA::Get($xpa, $template, $paramlist [,\%attrs]');
   
+  my ( $template, $paramlist, $attrs ) = @_;
+  
+  my %attrs = ( %def_attrs, $attrs ? %$attrs : () );
+  
+  # if called as a class method (ref($obj) not defined)
+  # create an essentially NULL pointer for pass to XPAGet
+  my $xpa = ref($obj) ? $obj->{xpa} : null_XPA($obj);
+  
+  _Get($xpa, $template, $paramlist, 
+       _flatten_mode( $attrs{mode} ),
+       $attrs{max_servers} );
 }
-
+  
+sub Set
 {
-  my %def_attrs = ( max_servers => 1, mode => {} );
-
-  sub Set
+  my $obj = shift;
+  
+  @_ >=2 && @_ <= 4 or goto SetError;
+  
+  my $attrs;
+  
+  my $buf;
+  my $template = shift;
+  my $paramlist = shift;
+  
+  if ( @_ == 1 )
   {
-    my $obj = shift;
-
-    @_ >=2 && @_ <= 4 or goto SetError;
-
-    my $attrs;
-
-    my $buf;
-    my $template = shift;
-    my $paramlist = shift;
-
-    if ( @_ == 1 )
+    if ( !ref($_[0]) )
     {
-      if ( !ref($_[0]) )
-      {
-	$buf = shift;
-      }
-      elsif ( 'HASH' eq ref($_[0]) )
-      {
-	$attrs = shift;
-      }
-      else
-      {
-	goto SetError;
-      }
+      $buf = shift;
     }
-    elsif ( @_ == 2 )
+    elsif ( 'HASH' eq ref($_[0]) )
     {
-      goto SetError 
-	unless !ref($_[0]) && 'HASH' eq ref($_[1]);
-      ( $buf, $attrs ) = @_;
+      $attrs = shift;
     }
-
-    $buf ||= '';
-
-    my %attrs = ( %def_attrs, $attrs ? %$attrs : () );
-    $attrs{len} = length($buf) unless defined $attrs{len};
-
-    # if called as a class method (ref($obj) not defined)
-    # create an essentially NULL pointer for pass to XPAGet
-    my $xpa = ref($obj) ? $obj->{xpa} : nullXPA();
-
-    return _Set($xpa, $template, $paramlist, 
-		_flatten_mode( $attrs{mode} ),
-		$buf, $attrs{len}, $attrs{max_servers} );
-
-  SetError:
-    croak( 'usage: IPC::XPA::Set($xpa, $template, $paramlist [, [$buf],[\%attrs]]');
+    else
+    {
+      goto SetError;
+    }
   }
-
-}
-
-
-{
-  my %def_attrs = ( max_servers => 1, mode => {} );
-  
-  sub Info
+  elsif ( @_ == 2 )
   {
-    my $obj = shift;
-    
-    @_ == 2 || ( @_ == 3 && 'HASH' eq ref($_[2]) ) or
-      croak( 'usage: IPC::XPA::Info($xpa, $template, $paramlist [,\%attrs]');
-    
-    my ( $template, $paramlist, $attrs ) = @_;
-
-    my %attrs = ( %def_attrs, $attrs ? %$attrs : () );
-
-    # if called as a class method (ref($obj) not defined)
-    # create an essentially NULL pointer for pass to XPAGet
-    my $xpa = ref($obj) ? $obj->{xpa} : nullXPA();
-
-    _Info($xpa, $template, $paramlist, 
-	 _flatten_mode( $attrs{mode} ),
-	 $attrs{max_servers} );
+    goto SetError 
+      unless !ref($_[0]) && 'HASH' eq ref($_[1]);
+    ( $buf, $attrs ) = @_;
   }
   
+  $buf ||= '';
+  
+  my %attrs = ( %def_attrs, $attrs ? %$attrs : () );
+  $attrs{len} = length($buf) unless defined $attrs{len};
+  
+  # if called as a class method (ref($obj) not defined)
+  # create an essentially NULL pointer for pass to XPAGet
+  my $xpa = ref($obj) ? $obj->{xpa} : nullXPA();
+  
+  return _Set($xpa, $template, $paramlist, 
+	      _flatten_mode( $attrs{mode} ),
+	      $buf, $attrs{len}, $attrs{max_servers} );
+  
+ SetError:
+  croak( 'usage: IPC::XPA::Set($xpa, $template, $paramlist [, [$buf],[\%attrs]]');
 }
 
-# this is a class method
+
+sub Info
+{
+  my $obj = shift;
+  
+  @_ == 2 || ( @_ == 3 && 'HASH' eq ref($_[2]) ) or
+    croak( 'usage: IPC::XPA::Info($xpa, $template, $paramlist [,\%attrs]');
+  
+  my ( $template, $paramlist, $attrs ) = @_;
+  
+  my %attrs = ( %def_attrs, $attrs ? %$attrs : () );
+  
+  # if called as a class method (ref($obj) not defined)
+  # create an essentially NULL pointer for pass to XPAGet
+  my $xpa = ref($obj) ? $obj->{xpa} : nullXPA();
+  
+  _Info($xpa, $template, $paramlist, 
+	_flatten_mode( $attrs{mode} ),
+	$attrs{max_servers} );
+}
+  
+  
 sub Access
 {
-  my $class = shift;
-  @_ == 2 ||
-    croak( 'usage: IPC::XPA::Access->($name, $type)');
-  _Access( @_ );
+  my $obj = shift;
+  
+  @_ == 2 || ( @_ == 3 && 'HASH' eq ref($_[2]) ) or
+    croak( 'usage: IPC::XPA::Access($xpa, $template, $paramlist [,\%attrs]');
+  
+  my ( $template, $paramlist, $attrs ) = @_;
+  
+  my %attrs = ( %def_attrs, $attrs ? %$attrs : () );
+  
+  # if called as a class method (ref($obj) not defined)
+  # create an essentially NULL pointer for pass to XPAGet
+  my $xpa = ref($obj) ? $obj->{xpa} : nullXPA();
+  
+  _Access($xpa, $template, $paramlist, 
+	  _flatten_mode( $attrs{mode} ),
+	  $attrs{max_servers} );
 }
-
-# this is a class method
+  
 sub NSLookup
 {
-  my $class = shift;
+  my $obj = shift;
+
   @_ == 2 ||
-    croak( 'usage: IPC::XPA::NSLookup->($template, $type)');
-  _NSLookup( @_ );
+    croak( 'usage: IPC::XPA::NSLookup->($xpa, $template, $type)');
+
+  # if called as a class method (ref($obj) not defined)
+  # create an essentially NULL pointer for pass to XPAGet
+  my $xpa = ref($obj) ? $obj->{xpa} : nullXPA();
+
+  _NSLookup( $xpa, @_ );
 }
 
 # Autoload methods go after =cut, and are processed by the autosplit program.
@@ -215,7 +220,8 @@ IPC::XPA - Interface to the XPA messaging system
   %res = $xpa->Info( $template, $paramlist );
   %res = $xpa->Info( $template, $paramlist, \%attrs );
   
-  $nservers = IPC::XPA->Access( $name, $type );
+  %res = IPC::XPA->Access( $template, $paramlist );
+  %res = IPC::XPA->Access( $template, $paramlist, \%attrs );
 
   @res = IPC::XPA->NSLookup( $template, $type );
 
@@ -278,10 +284,15 @@ automatically be closed upon destruction.
 
 =item Access
 
-	$ns = XPA::IPC->Access( $name, $type )
+	%res = XPA::IPC->Access( $name, $type )
 
-Returns the number of public access points that match the specified name
-and access type.  See the XPA docs for more information.
+Returns a hash keyed off of the server names which
+match the specified name and access type.  The hash values are 
+references to hashes, which will have the key C<name>, indicating the
+server's name (seems a bit redundant).
+
+See the XPA docs for more information.  This may also be called as an
+object method.
 
 =item NSLookup
 
@@ -309,8 +320,8 @@ Note that names returned by B<NSLookup> are different than those
 returned by the B<Set> and B<Get> methods; the latter return names
 which are essentially composites of the C<name> and C<method> keys.
 
-See the XPA docs for more information the C<template> and C<type>
-specification.
+This may also be called as an object method.  See the XPA docs for
+more information the C<template> and C<type> specification.
 
 =item Set
 
@@ -431,7 +442,7 @@ will be translated into the string form used by B<XPAGet()>
 
 =back
 
-It returns a hash keyed off of the server names.  The hashe values are
+It returns a hash keyed off of the server names.  The hash values are
 references to hashes, which will have the keys C<name>, indicating the
 server's name, and C<buf> which will contain the returned data.  If
 there was an error, the hashes will also contain the key C<message>.
