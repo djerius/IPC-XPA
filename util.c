@@ -94,7 +94,7 @@ cdata2hash_Get( char *buf, int len, char *name, char *message )
   return hash;
 }
 
-/* convert XPASet/XPAInfo client data to a Perl hash */
+/* convert XPASet/XPAInfo/XPAAccess client data to a Perl hash */
 HV *
 cdata2hash_Set( char *name, char *message )
 {
@@ -114,7 +114,7 @@ cdata2hash_Set( char *name, char *message )
 
 /* convert XPALookup client data to a Perl hash */
 HV *
-cdata2hash_Lookup( char *class, char *name, char *method )
+cdata2hash_Lookup( char *class, char *name, char *method, char *info )
 {
   /* create hash which will contain name, message */
   HV *hash = newHV();
@@ -127,6 +127,9 @@ cdata2hash_Lookup( char *class, char *name, char *method )
 
   if ( NULL == hv_store( hash, "method", 6, newSVpv(method,0), 0 ) )
     croak( "error storing method for response\n" );
+
+  if ( NULL == hv_store( hash, "info", 4, newSVpv(info,0), 0 ) )
+    croak( "error storing info for response\n" );
 
   return hash;
 }
