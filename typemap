@@ -7,7 +7,7 @@ T_PTROBJ_SPECIAL
 	if (sv_derived_from($arg, \"${(my $ntt=$ntype)=~s/_/::/g;\$ntt}\"))
 	{
 	IV tmp = ( &PL_sv_undef == (SV*) SvIV((SV*)SvRV($arg))  ) ?
-	                  NULL : SvIV((SV*)SvRV($arg)); 
+	                  (IV) NULL : SvIV((SV*)SvRV($arg)); 
 	  $var = ($type) tmp;
 	}
 	else

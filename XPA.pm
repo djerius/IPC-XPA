@@ -7,13 +7,12 @@ package IPC::XPA;
 
 use strict;
 use Carp;
-use vars qw($VERSION @ISA @EXPORT @EXPORT_OK $AUTOLOAD);
+use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
 
 use Data::Dumper;
 
 require Exporter;
 require DynaLoader;
-require AutoLoader;
 
 @ISA = qw(Exporter DynaLoader);
 # Items to export into callers namespace by default. Note: do not export
@@ -22,29 +21,7 @@ require AutoLoader;
 @EXPORT = qw(
 	
 );
-$VERSION = '0.04';
-
-sub AUTOLOAD {
-    # This AUTOLOAD is used to 'autoload' constants from the constant()
-    # XS function.  If a constant is not found then control is passed
-    # to the AUTOLOAD in AutoLoader.
-
-    my $constname;
-    ($constname = $AUTOLOAD) =~ s/.*:://;
-    croak "& not defined" if $constname eq 'constant';
-    my $val = constant($constname, @_ ? $_[0] : 0);
-    if ($! != 0) {
-	if ($! =~ /Invalid/) {
-	    $AutoLoader::AUTOLOAD = $AUTOLOAD;
-	    goto &AutoLoader::AUTOLOAD;
-	}
-	else {
-		croak "Your vendor has not defined IPC::XPA macro $constname";
-	}
-    }
-    *$AUTOLOAD = sub () { $val };
-    goto &$AUTOLOAD;
-}
+$VERSION = '0.05';
 
 bootstrap IPC::XPA $VERSION;
 
