@@ -5,8 +5,9 @@ use Config;
 WriteMakefile(
     'NAME'	=> 'IPC::XPA',
     'VERSION_FROM' => 'XPA.pm', # finds $VERSION
-    'LIBS'	=> ["-L/proj/axaf/pkgs/xpa/sparc-SunOS-5/lib -lxpa"],   # e.g., '-lm' 
+    'LIBS'	=> ["-L/soft/saord/lib -lxpa"],   # e.g., '-lm' 
     'DEFINE'	=> '',     # e.g., '-DHAVE_SOMETHING' 
-    'INC'	=> '-I/proj/axaf/pkgs/xpa/include',     # e.g., '-I/usr/include/other' 
+    'INC'	=> '-I/soft/saord/include',     # e.g., '-I/usr/include/other' 
     'OBJECT'	=> 'XPA.o util.o',
+    'PREREQ_PM' => { Test::More => 0 },
 );
