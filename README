@@ -15,7 +15,7 @@ Eventually the rest will be provided.
 
 INSTALLATION
 ------------
-This package has been tested on Perl 5.005_01, and xpa 2.0.2.  The
+This package has been tested on Perl 5.005_01, and xpa 2.0.3.  The
 only platform it's been tested on is Solaris 2.6.
 
 You will need to edit Makefile.PL to point to the xpa library and
