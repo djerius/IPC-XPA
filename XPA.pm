@@ -1,4 +1,4 @@
-# (C) 2000 Smithsonian Astrophysical Observatory.  All rights reserved.
+# (C) 2000-2002 Smithsonian Astrophysical Observatory.  All rights reserved.
 # 
 # This program is free software; you can redistribute it and/or modify
 # it under the same terms as Perl itself.
@@ -21,14 +21,14 @@ require DynaLoader;
 @EXPORT = qw(
 	
 );
-$VERSION = '0.06';
+$VERSION = '0.07';
 
 bootstrap IPC::XPA $VERSION;
 
 # Preloaded methods go here.
 
 # default attributes for Get, Set, Info, Access
-my %def_attrs = ( max_servers => 1, mode => {} );
+my %def_attrs = ( max_servers => 1000, mode => {} );
 
 sub _flatten_mode
 {
@@ -43,7 +43,7 @@ sub Open
 {
   my ( $class, $mode ) = @_;
   $class = ref($class) || $class;
-  
+
   # _Open will bless $xpa into the IPC::XPA class, but
   # need to worry about inheritance.
   my $xpa = _Open( _flatten_mode( $mode ) );
@@ -66,122 +66,108 @@ sub DESTROY
 sub Get
 {
   my $obj = shift;
-  
-  @_ == 2 || ( @_ == 3 && 'HASH' eq ref($_[2]) ) or
-    croak( 'usage: IPC::XPA::Get($xpa, $template, $paramlist [,\%attrs]');
-  
-  my ( $template, $paramlist, $attrs ) = @_;
-  
+
+  my $attrs = pop @_
+    if 'HASH' eq ref $_[-1];
+
+  @_ == 2 or
+    croak( 'usage: IPC::XPA->Get( $template, $paramlist [,\%attrs]');
+
+  my ( $template, $paramlist ) = @_;
+
   my %attrs = ( %def_attrs, $attrs ? %$attrs : () );
-  
+
   # if called as a class method (ref($obj) not defined)
   # create an essentially NULL pointer for pass to XPAGet
-  my $xpa = ref($obj) ? $obj->{xpa} : null_XPA($obj);
-  
+  my $xpa = ref($obj) ? $obj->{xpa} : nullXPA();
+
   _Get($xpa, $template, $paramlist, 
        _flatten_mode( $attrs{mode} ),
        $attrs{max_servers} );
 }
-  
+
 sub Set
 {
   my $obj = shift;
-  
-  @_ >=2 && @_ <= 4 or goto SetError;
-  
-  my $attrs;
-  
-  my $buf;
+
+  my $attrs = pop @_
+    if 'HASH' eq ref $_[-1];
+
+  @_ ==2 || @_ == 3 or 
+  croak( 'usage: IPC::XPA->Set( $template, $paramlist [, [$buf],[\%attrs]]');
+
   my $template = shift;
   my $paramlist = shift;
-  
-  if ( @_ == 1 )
-  {
-    if ( !ref($_[0]) )
-    {
-      $buf = shift;
-    }
-    elsif ( 'HASH' eq ref($_[0]) )
-    {
-      $attrs = shift;
-    }
-    else
-    {
-      goto SetError;
-    }
-  }
-  elsif ( @_ == 2 )
-  {
-    goto SetError 
-      unless !ref($_[0]) && 'HASH' eq ref($_[1]);
-    ( $buf, $attrs ) = @_;
-  }
-  
+  my $buf = shift;
+
   $buf ||= '';
-  
+
   my %attrs = ( %def_attrs, $attrs ? %$attrs : () );
   $attrs{len} = length($buf) unless defined $attrs{len};
-  
+
   # if called as a class method (ref($obj) not defined)
   # create an essentially NULL pointer for pass to XPAGet
   my $xpa = ref($obj) ? $obj->{xpa} : nullXPA();
-  
-  return _Set($xpa, $template, $paramlist, 
+
+  _Set($xpa, $template, $paramlist, 
 	      _flatten_mode( $attrs{mode} ),
 	      $buf, $attrs{len}, $attrs{max_servers} );
-  
- SetError:
-  croak( 'usage: IPC::XPA::Set($xpa, $template, $paramlist [, [$buf],[\%attrs]]');
 }
 
 
 sub Info
 {
   my $obj = shift;
-  
-  @_ == 2 || ( @_ == 3 && 'HASH' eq ref($_[2]) ) or
-    croak( 'usage: IPC::XPA::Info($xpa, $template, $paramlist [,\%attrs]');
-  
-  my ( $template, $paramlist, $attrs ) = @_;
-  
+
+  my $attrs = pop @_
+    if 'HASH' eq ref $_[-1];
+
+  @_ == 2 or
+    croak( 'usage: IPC::XPA->Info( $template, $paramlist [,\%attrs]');
+
+  my ( $template, $paramlist ) = @_;
+
   my %attrs = ( %def_attrs, $attrs ? %$attrs : () );
-  
+
   # if called as a class method (ref($obj) not defined)
   # create an essentially NULL pointer for pass to XPAGet
   my $xpa = ref($obj) ? $obj->{xpa} : nullXPA();
-  
+
   _Info($xpa, $template, $paramlist, 
 	_flatten_mode( $attrs{mode} ),
 	$attrs{max_servers} );
 }
-  
-  
+
+
 sub Access
 {
   my $obj = shift;
-  
-  @_ == 2 || ( @_ == 3 && 'HASH' eq ref($_[2]) ) or
-    croak( 'usage: IPC::XPA::Access($xpa, $template, $paramlist [,\%attrs]');
-  
-  my ( $template, $paramlist, $attrs ) = @_;
-  
+
+  my $attrs = pop @_
+    if 'HASH' eq ref $_[-1];
+
+  @_ == 1 || @_ == 2 or
+    croak( 'usage: IPC::XPA->Access( $template, [,$paramlist] [,\%attrs]');
+
+  my ( $template, $paramlist ) = @_;
+
   my %attrs = ( %def_attrs, $attrs ? %$attrs : () );
-  
+
   # if called as a class method (ref($obj) not defined)
   # create an essentially NULL pointer for pass to XPAGet
   my $xpa = ref($obj) ? $obj->{xpa} : nullXPA();
-  
+
   _Access($xpa, $template, $paramlist, 
 	  _flatten_mode( $attrs{mode} ),
 	  $attrs{max_servers} );
 }
-  
+
 sub NSLookup
 {
   my $obj = shift;
 
   @_ == 2 ||
-    croak( 'usage: IPC::XPA::NSLookup->($xpa, $template, $type)');
+    croak( 'usage: IPC::XPA->NSLookup( $template, $type)');
 
   # if called as a class method (ref($obj) not defined)
   # create an essentially NULL pointer for pass to XPAGet
@@ -219,7 +205,7 @@ IPC::XPA - Interface to the XPA messaging system
 
   %res = $xpa->Info( $template, $paramlist );
   %res = $xpa->Info( $template, $paramlist, \%attrs );
-  
+
   %res = IPC::XPA->Access( $template, $paramlist );
   %res = IPC::XPA->Access( $template, $paramlist, \%attrs );
 
@@ -251,7 +237,7 @@ routines with C<XPA>).
 
 =item nullXPA
 
-	$xpa = XPA::IPC->nullXPA;
+	$xpa = IPC::XPA->nullXPA;
 
 This creates an xpa object which is equivalent to a NULL XPA handle as
 far as the underlying XPA routines are concerned.  It can be used to
@@ -261,8 +247,8 @@ B<Open()> method may fail).
 
 =item Open
 
-	$xpa = XPA::IPC->Open();
-	$xpa = XPA::IPC->Open( \%mode );
+	$xpa = IPC::XPA->Open();
+	$xpa = IPC::XPA->Open( \%mode );
 
 This creates an XPA object.  C<mode> is a hash containing mode
 keywords and values, which will be translated into the string form
@@ -272,7 +258,7 @@ returns B<undef> upon failure.
 
 For example,
 
-	$xpa = XPA::IPC->Open( { verify => 'true' } );
+	$xpa = IPC::XPA->Open( { verify => 'true' } );
 
 
 =item Close
@@ -284,26 +270,42 @@ automatically be closed upon destruction.
 
 =item Access
 
-	%res = XPA::IPC->Access( $name, $type )
+	%res = IPC::XPA->Access( $name [, $type] [, \%attr ] )
 
-Returns a hash keyed off of the server names which
-match the specified name and access type.  The hash values are 
-references to hashes, which will have the key C<name>, indicating the
-server's name (seems a bit redundant).
+Returns a hash keyed off of the server names which match the specified
+name and access type.  The hash values are references to hashes, which
+will have the key C<name>, indicating the server's name (seems a bit
+redundant).
+
+C<%attr> is a hash with the following recognized keys:
+
+=over 8
+
+=item mode
+
+The value for this element should be a hashref which will be flattened
+to provide the correct format for the actual XPA B<Access> C<mode> parameter.
+
+=item max_servers
+
+This should be set to the maximum number of servers to return.  It defaults
+to 1000.
+
+=back
 
 See the XPA docs for more information.  This may also be called as an
 object method.
 
 =item NSLookup
 
-	@res = XPA::IPC->NSLookup( $template, $type )
+	@res = IPC::XPA->NSLookup( $template, $type )
 
 This calls the XPANSLookup routine.  It returns the results of the
 lookup as a list of references to hashes, one per server. The hashes
 have the keys C<name> C<class>, and C<method>.  For example,
 
 	use Data::Dumper;
-	@res = XPA::IPC->NSLookup( 'ds9', 'ls' );
+	@res = IPC::XPA->NSLookup( 'ds9', 'ls' );
 	print Dumper(\@res);
 
 results in
@@ -500,6 +502,13 @@ the C<name> and C<message> values.
 =head1 The XPA Library
 
 The XPA library is available at C<http://hea-www.harvard.edu/RD/xpa/>.
+
+=head1 LICENSE
+
+This software is released under the GNU General Public License.  You
+may find a copy at 
+
+   http://www.fsf.org/copyleft/gpl.html
 
 =head1 AUTHOR
 

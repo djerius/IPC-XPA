@@ -1,5 +1,8 @@
 Revision history for Perl extension IPC::XPA.
 
+0.07  Fri Apr 12 16:54:22 EDT 2002
+        - code + doc cleanups.
+
 0.06  Fri Jan 25 19:13:59 EST 2002
         - upgraded to XPA 2.1.0b8.
 	- NSLookup and Access had API changes.

@@ -30,7 +30,7 @@ use constant XPASERVER => 'ds9';
 my $connect;
 
 # check connectivity
-my %res = IPC::XPA->Access( XPASERVER, "gs" );
+my %res = IPC::XPA->Access( XPASERVER, "gs", { max_servers => 1000 } );
 
 # set connect to -1 on failure so all of the remaining tests fail
 unless ( keys %res && _chk_message( 0, %res ) )
