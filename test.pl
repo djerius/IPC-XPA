@@ -58,9 +58,12 @@ my $xpa = IPC::XPA->Open( { verify => 'true' } );
 print 'not ' unless defined $xpa;
 print "ok $test\n";
 
+
+my %attr = ( max_servers => $connect );
+
 $test++;
 print "$test: Get 1\n" if $verbose;
-@res = $xpa->Get( 'ds9', '-help quit' );
+@res = $xpa->Get( 'ds9', '-help quit', \%attr );
 print Dumper(\@res) if $verbose;
 _chk_message( $connect, @res );
 print "ok $test\n";
@@ -68,28 +71,27 @@ print "ok $test\n";
 $test++;
 print "$test: Get 2\n" if $verbose;
 my @res = $xpa->Get( 'ds9', '-help quit',
-		     { mode => { ack => 'true' }, max_servers => 20 });
+		     { mode => { ack => 'true' }, %attr });
 print Dumper(\@res) if $verbose;
 _chk_message( $connect, @res );
 print "ok $test\n";
 
-
 $test++;
-@res = $xpa->Set( 'ds9', 'mode crosshair' );
+@res = $xpa->Set( 'ds9', 'mode crosshair', \%attr );
 print Dumper(\@res) if $verbose;
 _chk_message( $connect, @res );
 print "ok $test\n";
 
 $test++;
 @res = $xpa->Set( 'ds9', 'mode crosshair',
-		     { mode => { ack => 'true' }, max_servers => 20 });
+		     { mode => { ack => 'true' }, %attr });
 print Dumper(\@res) if $verbose;
 _chk_message( $connect, @res );
 print "ok $test\n";
 
 $test++;
 @res = IPC::XPA->Set( 'ds9', 'mode pointer',
-		     { mode => { ack => 'true' }, max_servers => 20 });
+		     { mode => { ack => 'true' }, %attr });
 print Dumper(\@res) if $verbose;
 _chk_message( $connect, @res );
 print "ok $test\n";
@@ -99,7 +101,7 @@ if ( $use_PDL )
   my $k = zeroes(double, 100,100)->rvals;
   
   @res = $xpa->Set( 'ds9', 'array [dim=100,bitpix=-64]', 
-		    ${$k->get_dataref});
+		    ${$k->get_dataref}, \%attr);
   $test++;
   print Dumper(\@res) if $verbose;
   _chk_message( $connect, @res );

@@ -5,8 +5,8 @@ use Config;
 WriteMakefile(
     'NAME'	=> 'IPC::XPA',
     'VERSION_FROM' => 'XPA.pm', # finds $VERSION
-    'LIBS'	=> ["-L/home/dj/tmp/xpa-2.0 -lxpa"],   # e.g., '-lm' 
+    'LIBS'	=> ["-L/proj/axaf/pkgs/xpa -lxpa"],   # e.g., '-lm' 
     'DEFINE'	=> '',     # e.g., '-DHAVE_SOMETHING' 
-    'INC'	=> '-I/home/dj/tmp/xpa-2.0',     # e.g., '-I/usr/include/other' 
+    'INC'	=> '-I/proj/axaf/pkgs/xpa',     # e.g., '-I/usr/include/other' 
     'OBJECT'	=> 'XPA.o util.o',
 );
