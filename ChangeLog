@@ -1,0 +1,127 @@
+2002-09-25 17:40  tag V0_08
+
+2002-09-25 17:40  dj
+
+	* XPA.pm: [no log message]
+
+2002-09-23 11:04  dj
+
+	* Changes, XPA.pm, test.pl: the buf argument to Set may be a scalar
+	  ref as well as a scalar
+
+2002-04-12 16:55  tag V0_07
+
+2002-04-12 16:55  dj
+
+	* Changes, XPA.pm, test.pl: code + doc cleanups
+
+2002-01-29 09:59  tag V0_06
+
+2002-01-29 09:59  dj
+
+	* README, Changes, MANIFEST.SKIP: [no log message]
+
+2002-01-28 17:05  dj
+
+	* test.pl: cleanup, track new Access changes
+
+2002-01-28 17:05  dj
+
+	* Makefile.PL: [no log message]
+
+2002-01-28 17:05  dj
+
+	* LICENSE: switch to GPL
+
+2002-01-28 17:05  dj
+
+	* XPA.pm: track new API for NSLookup and Access. cleanup.
+
+2002-01-28 17:04  dj
+
+	* XPA.xs: track new API for NSLookup and Access
+
+2002-01-28 15:31  dj
+
+	* util.c, util.h: track NSLookup API changes
+
+2000-09-08 21:00  tag V0_05
+
+2000-09-08 21:00  dj
+
+	* Changes, XPA.pm, typemap: 0.05  Fri Sep  8 20:54:43 EDT 2000
+	     - missing typemap cast caused warnings from gcc
+
+		  - removed AUTOLOAD stuff; not needed
+
+2000-08-02 12:23  tag V0_04
+
+2000-08-02 12:23  dj
+
+	* XPA.pm: [no log message]
+
+2000-08-02 12:19  dj
+
+	* Changes, XPA.pm, XPA.xs, test.pl, typemap: [no log message]
+
+2000-07-06 09:33  dj
+
+	* Changes, test.pl: [no log message]
+
+2000-07-05 11:35  tag V0_03
+
+2000-07-05 11:35  dj
+
+	* CONTRIB: [no log message]
+
+2000-06-30 17:45  dj
+
+	* README: [no log message]
+
+2000-06-30 16:21  dj
+
+	* Makefile.PL: [no log message]
+
+2000-05-11 13:53  dj
+
+	* Changes, XPA.pm, XPA.xs, typemap:	- nullXPA() was was
+	  returning something which caused
+		    the XS routines to complain about undef'd values.  it
+	  was
+		    moved into XS land, and a more sophisticated (kludgy?)
+		    thing was done to check for undef and mapping it
+	  correctly
+		    to NULL.
+
+2000-05-09 16:58  tag V0_02
+
+2000-05-09 16:58  dj
+
+	* Makefile.PL, test.pl, Changes, XPA.pm: [no log message]
+
+2000-05-03 21:46  tag V0_01
+
+2000-05-03 21:46  dj
+
+	* GNUmakefile, INSTALL: [no log message]
+
+2000-04-25 15:13  dj
+
+	* XPA.pm: [no log message]
+
+2000-04-24 20:02  dj
+
+	* LICENSE, README, XPA.pm, XPA.xs, util.c, util.h: [no log message]
+
+2000-04-24 19:35  tag initial
+
+2000-04-24 19:35  dj
+
+	* Changes, MANIFEST, Makefile.PL, XPA.pm, XPA.xs, test.pl, typemap,
+	  util.c, util.h, LICENSE, README: Initial revision
+
+2000-04-24 19:35  dj
+
+	* Changes, MANIFEST, Makefile.PL, XPA.pm, XPA.xs, test.pl, typemap,
+	  util.c, util.h, LICENSE, README: [no log message]
+
