@@ -1,4 +1,7 @@
 Revision history for Perl extension IPC::XPA.
+0.08_01 Fri Jan 18 14:57:47 EST 2008
+	- remove nuisance GNUMakefile
+	- add primitive support for pkg-config for xpa
 
 0.08  Mon Sep 23 11:01:31 EDT 2002
         - the buf argument to Set may be a scalar ref
