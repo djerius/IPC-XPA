@@ -1,4 +1,8 @@
 Revision history for Perl extension IPC::XPA.
+
+0.09    Tue Nov 10 13:13:47 EST 2009
+	- fix licensing; was a mix of GPL2 & Perl, now is pure GPL3
+
 0.08_01 Fri Jan 18 14:57:47 EST 2008
 	- remove nuisance GNUMakefile
 	- add primitive support for pkg-config for xpa

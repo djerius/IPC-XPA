@@ -38,7 +38,7 @@ require DynaLoader;
 @EXPORT = qw(
 	
 );
-$VERSION = '0.08_01';
+$VERSION = '0.09';
 
 bootstrap IPC::XPA $VERSION;
 

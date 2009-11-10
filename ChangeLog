@@ -1,15 +1,43 @@
-2008-01-18 14:57 -0500  djerius  <djerius@cfa.harvard.edu>  (603c5d7545f2 [tip])
+2009-11-10 13:05 -0500  djerius  <djerius@cfa.harvard.edu>  (dde19bd9fd24 [tip])
+
+	* LICENSE, README, XPA.pm, XPA.xs, test.pl, util.c, util.h:
+	update license to GPL3
+
+2009-11-10 12:56 -0500  djerius  <djerius@cfa.harvard.edu>  (5e932cf3ec4b)
+
+	* XPA.xs:
+	cleanup whitespace
+
+2008-01-18 15:00 -0500  djerius  <djerius@cfa.harvard.edu>  (7ba5fdec29ce)
+
+	* INSTALL: deleted file.
+	* INSTALL:
+	remove useless file
+
+2008-01-18 14:59 -0500  djerius  <djerius@cfa.harvard.edu>  (b4d84a5fe57a)
+
+	* .hgtags:
+	Added tag 0.08_01 for changeset 03c8732b7355
+
+2008-01-18 14:59 -0500  djerius  <djerius@cfa.harvard.edu>  (03c8732b7355 [0.08_01])
+
+	* ChangeLog, Changes, XPA.pm:
+	update for release
+
+2008-01-18 14:57 -0500  djerius  <djerius@cfa.harvard.edu>  (603c5d7545f2)
 
 	* Makefile.PL:
 	hack in pkg-config support for xpa
 
 2008-01-18 14:50 -0500  djerius  <djerius@cfa.harvard.edu>  (03d37f82f56c)
 
+	* GNUmakefile: deleted file.
 	* GNUmakefile:
 	remove obsolete file
 
 2007-12-22 04:39 +0000  dj  <dj>  (781d0e62cf45)
 
+	* ChangeLog: new file.
 	* ChangeLog:
 	added ChangeLog
 
@@ -45,6 +73,7 @@
 
 2002-01-29 14:59 +0000  dj  <dj>  (05f6bdf1a43b [V0_06])
 
+	* MANIFEST.SKIP: new file.
 	* Changes, MANIFEST.SKIP, README:
 	Empty changelog
 
@@ -113,6 +142,7 @@
 
 2000-07-05 15:35 +0000  dj  <dj>  (89cc92b7dfc3 [V0_03])
 
+	* CONTRIB: new file.
 	* CONTRIB:
 	Empty changelog
 
@@ -152,6 +182,7 @@
 
 2000-05-04 01:46 +0000  dj  <dj>  (dc31838b3d1c [V0_01])
 
+	* GNUmakefile, INSTALL: new file.
 	* GNUmakefile, INSTALL:
 	Empty changelog
 
@@ -167,22 +198,27 @@
 
 2007-12-22 01:17 -0500  djerius  <djerius@cfa.harvard.edu>  (e85b9d8ffa5f)
 
+	* .hgtags: new file.
 	* .hgtags:
 	Added tag initial for changeset 8406f65641b7
 
 2000-04-24 23:35 +0000  dj  <dj>  (8406f65641b7 [initial])
 
+	* LICENSE, README: new file.
 	* LICENSE, README:
 	Initial revision
 
 2000-04-24 23:35 +0000  dj  <dj>  (b436df9d42dd)
 
 	* Changes, MANIFEST, Makefile.PL, XPA.pm, XPA.xs, test.pl, typemap,
+	util.c, util.h: new file.
+	* Changes, MANIFEST, Makefile.PL, XPA.pm, XPA.xs, test.pl, typemap,
 	util.c, util.h:
 	Empty changelog
 
 2007-12-22 01:17 -0500  djerius  <djerius@cfa.harvard.edu>  (78f81d8b43c5)
 
+	* .hgignore: new file.
 	* .hgignore:
 	Tailor preparing to convert repo by adding .hgignore
 
