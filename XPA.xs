@@ -30,7 +30,7 @@ extern "C" {
 
 typedef XPA IPC_XPA_RAW;
 
-MODULE = IPC::XPA		PACKAGE = IPC::XPA		
+MODULE = IPC::XPA		PACKAGE = IPC::XPA
 
 IPC_XPA_RAW
 _Open(mode)
@@ -48,7 +48,7 @@ nullXPA()
 	RETVAL
 
 
-void 
+void
 _Close(xpa)
 	IPC_XPA_RAW	xpa
 	CODE:
@@ -138,7 +138,7 @@ _Set(xpa, xtemplate, paramlist, mode, buf, len, max_servers )
 		/* free up memory that's no longer needed */
 		Safefree( names );
 		Safefree( messages );
-	
+
 
 void
 _Info(xpa, xtemplate, paramlist, mode, max_servers )
@@ -188,7 +188,7 @@ _NSLookup(xpa, tname, ttype)
 		int i;
 		int ns;
 	PPCODE:
-		ns = XPANSLookup( xpa, tname, ttype, &xclasses, &names, 
+		ns = XPANSLookup( xpa, tname, ttype, &xclasses, &names,
                                  &methods, &infos );
 		/* convert result into something Perlish */
 		EXTEND(SP, ns);
