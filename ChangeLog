@@ -1,4 +1,24 @@
-2009-11-10 13:05 -0500  djerius  <djerius@cfa.harvard.edu>  (dde19bd9fd24 [tip])
+2011-03-29 09:57 -0400  djerius  <djerius@cfa.harvard.edu>  (e31ba9aaa0d3 [tip])
+
+	* XPA.xs:
+	don't free pointers if there were no servers
+
+2009-11-10 13:21 -0500  djerius  <djerius@cfa.harvard.edu>  (3e1021bc9239)
+
+	* .hgtags:
+	Added tag 0.09 for changeset 939b3416ae69
+
+2009-11-10 13:15 -0500  djerius  <djerius@cfa.harvard.edu>  (939b3416ae69 [0.09])
+
+	* ChangeLog, Changes, XPA.pm:
+	update log and version for release
+
+2009-11-10 13:15 -0500  djerius  <djerius@cfa.harvard.edu>  (aadeed3802e9)
+
+	* README:
+	remove explicit version to make more future proof
+
+2009-11-10 13:05 -0500  djerius  <djerius@cfa.harvard.edu>  (dde19bd9fd24)
 
 	* LICENSE, README, XPA.pm, XPA.xs, test.pl, util.c, util.h:
 	update license to GPL3

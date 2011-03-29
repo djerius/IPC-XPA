@@ -1,5 +1,10 @@
 Revision history for Perl extension IPC::XPA.
 
+0.10    Tue Mar 29 09:58:17 EDT 2011
+
+	- Fix inappropriate freeing of memory if no servers responded
+	  to XPANSLookup
+
 0.09    Tue Nov 10 13:13:47 EST 2009
 	- fix licensing; was a mix of GPL2 & Perl, now is pure GPL3
 
