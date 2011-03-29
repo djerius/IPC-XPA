@@ -220,10 +220,13 @@ _NSLookup(xpa, tname, ttype)
 		  free( methods[i] );
 		  free( infos[i] );
 		}
-		free( xclasses );
-		free( names );
-		free( methods );
-		free( infos );
+		if ( ns > 0 )
+		{
+		  free( xclasses );
+		  free( names );
+		  free( methods );
+		  free( infos );
+		}
 
 void
 _Access(xpa, xtemplate, paramlist, mode, max_servers )
