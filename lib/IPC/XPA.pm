@@ -13,6 +13,7 @@ bootstrap IPC::XPA $VERSION;
 
 use Carp;
 
+use namespace::clean;
 
 
 # default attributes for Get, Set, Info, Access
