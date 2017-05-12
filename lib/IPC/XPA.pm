@@ -55,15 +55,14 @@ sub Get
 {
   my $obj = shift;
 
-  my $attrs = pop @_
-    if 'HASH' eq ref $_[-1];
+  my $attrs = 'HASH' eq ref $_[-1] ? pop @_ : {};
 
   @_ == 2 or
     croak( 'usage: IPC::XPA->Get( $template, $paramlist [,\%attrs]');
 
   my ( $template, $paramlist ) = @_;
 
-  my %attrs = ( %def_attrs, $attrs ? %$attrs : () );
+  my %attrs = ( %def_attrs, %$attrs );
 
   # if called as a class method (ref($obj) not defined)
   # create an essentially NULL pointer for pass to XPAGet
@@ -78,8 +77,7 @@ sub Set
 {
   my $obj = shift;
 
-  my $attrs = pop @_
-    if 'HASH' eq ref $_[-1];
+  my $attrs = 'HASH' eq ref $_[-1] ? pop @_ : {};
 
   @_ ==2 || @_ == 3 or 
   croak( 'usage: IPC::XPA->Set( $template, $paramlist [, [$buf],[\%attrs]]');
@@ -87,7 +85,7 @@ sub Set
   my $template = shift;
   my $paramlist = shift;
 
-  my %attrs = ( %def_attrs, $attrs ? %$attrs : () );
+  my %attrs = ( %def_attrs, %$attrs );
 
   # we want a reference to the data to avoid copying it.
   # if it's already a reference, use that directly, else
@@ -110,15 +108,14 @@ sub Info
 {
   my $obj = shift;
 
-  my $attrs = pop @_
-    if 'HASH' eq ref $_[-1];
+  my $attrs = 'HASH' eq ref $_[-1] ? pop @_ : {};
 
   @_ == 2 or
     croak( 'usage: IPC::XPA->Info( $template, $paramlist [,\%attrs]');
 
   my ( $template, $paramlist ) = @_;
 
-  my %attrs = ( %def_attrs, $attrs ? %$attrs : () );
+  my %attrs = ( %def_attrs, %$attrs );
 
   # if called as a class method (ref($obj) not defined)
   # create an essentially NULL pointer for pass to XPAGet
@@ -134,15 +131,14 @@ sub Access
 {
   my $obj = shift;
 
-  my $attrs = pop @_
-    if 'HASH' eq ref $_[-1];
+  my $attrs = 'HASH' eq ref $_[-1] ? pop @_  : {};
 
   @_ == 1 || @_ == 2 or
     croak( 'usage: IPC::XPA->Access( $template, [,$paramlist] [,\%attrs]');
 
   my ( $template, $paramlist ) = @_;
 
-  my %attrs = ( %def_attrs, $attrs ? %$attrs : () );
+  my %attrs = ( %def_attrs, %$attrs );
 
   # if called as a class method (ref($obj) not defined)
   # create an essentially NULL pointer for pass to XPAGet
