@@ -1,13 +1,18 @@
 requires "Alien::XPA" => "0";
 requires "Carp" => "0";
 requires "DynaLoader" => "0";
+requires "namespace::clean" => "0";
 requires "parent" => "0";
 requires "strict" => "0";
 requires "warnings" => "0";
 
 on 'test' => sub {
+  requires "Action::Retry" => "0";
+  requires "Alien::XPA" => "0";
+  requires "Env" => "0";
   requires "ExtUtils::MakeMaker" => "0";
   requires "File::Spec" => "0";
+  requires "File::Which" => "0";
   requires "IO::Handle" => "0";
   requires "IPC::Open3" => "0";
   requires "Test2::Bundle::Extended" => "0";
@@ -54,7 +59,6 @@ on 'develop' => sub {
   requires "Dist::Zilla::Plugin::RunExtraTests" => "0";
   requires "Dist::Zilla::Plugin::Test::CPAN::Changes" => "0";
   requires "Dist::Zilla::Plugin::Test::CPAN::Meta::JSON" => "0";
-  requires "Dist::Zilla::Plugin::Test::CheckManifest" => "0";
   requires "Dist::Zilla::Plugin::Test::CleanNamespaces" => "0";
   requires "Dist::Zilla::Plugin::Test::Compile" => "0";
   requires "Dist::Zilla::Plugin::Test::Fixme" => "0";
