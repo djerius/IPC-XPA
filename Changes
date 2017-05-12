@@ -1,4 +1,16 @@
-Revision history for Perl extension IPC::XPA.
+Revision history for {{$dist->name}}
+
+{{$NEXT}}
+
+  [BUILD]
+
+     * Now uses ALien::XPA to find XPA library
+     * no longer requires ds9 executable for testing
+
+  [DEVEL]
+
+     * switched to Dist::Zilla
+
 
 0.10	2011-03-29T09:59:32-04:00
 
