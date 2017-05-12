@@ -1,0 +1,313 @@
+# NAME
+
+IPC::XPA - Interface to the XPA messaging system
+
+# VERSION
+
+version 0.10
+
+# SYNOPSIS
+
+    use IPC::XPA;
+
+    $xpa = IPC::XPA->Open();
+    $xpa = IPC::XPA->Open(\%mode);
+    $xpa = IPC::XPA->nullXPA;
+
+
+    %res = $xpa->Get( $template, $paramlist );
+    %res = $xpa->Get( $template, $paramlist, \%attrs );
+
+    %res = $xpa->Set( $template, $paramlist );
+    %res = $xpa->Set( $template, $paramlist, $buf );
+    %res = $xpa->Set( $template, $paramlist, $buf, \%attrs );
+    %res = $xpa->Set( $template, $paramlist, \%attrs );
+
+    %res = $xpa->Info( $template, $paramlist );
+    %res = $xpa->Info( $template, $paramlist, \%attrs );
+
+    %res = IPC::XPA->Access( $template, $paramlist );
+    %res = IPC::XPA->Access( $template, $paramlist, \%attrs );
+
+    @res = IPC::XPA->NSLookup( $template, $type );
+
+# DESCRIPTION
+
+This class provides access to the XPA messaging system library,
+`xpa`, developed by the Smithsonian Astrophysical Observatory's High
+Energy Astrophysics R&D Group.  The library provides simple
+inter-process communication via calls to the `xpa` library as well as
+via supplied user land programs.
+
+The method descriptions below do not duplicate the contents of the
+documentation provided with the `xpa` library.
+
+Currently, only the client side routines are accessible.
+
+# METHODS
+
+Unless otherwise specified, the following methods are simple wrappers
+around the similarly named XPA routines (just prefix the Perl
+routines with `XPA`).
+
+## Class Methods
+
+- nullXPA
+
+            $xpa = IPC::XPA->nullXPA;
+
+    This creates an xpa object which is equivalent to a NULL XPA handle as
+    far as the underlying XPA routines are concerned.  It can be used to
+    create a default XPA object, as it it guaranteed to succeed (the
+    **Open()** method may fail).
+
+- Open
+
+            $xpa = IPC::XPA->Open();
+            $xpa = IPC::XPA->Open( \%mode );
+
+    This creates an XPA object.  `mode` is a hash containing mode
+    keywords and values, which will be translated into the string form
+    used by **XPAOpen()**.  The object will be destroyed when it goes out
+    of scope; the **XPAClose()** routine will automatically be called.  It
+    returns **undef** upon failure.
+
+    For example,
+
+            $xpa = IPC::XPA->Open( { verify => 'true' } );
+
+- Close
+
+            $xpa->Close;
+
+    Close the XPA object.  This is usually not necessary, as it will
+    automatically be closed upon destruction.
+
+- Access
+
+            %res = IPC::XPA->Access( $name [, $type] [, \%attr ] )
+
+    Returns a hash keyed off of the server names which match the specified
+    name and access type.  The hash values are references to hashes, which
+    will have the key `name`, indicating the server's name (seems a bit
+    redundant).
+
+    `%attr` is a hash with the following recognized keys:
+
+    - mode
+
+        The value for this element should be a hashref which will be flattened
+        to provide the correct format for the actual XPA **Access** `mode` parameter.
+
+    - max\_servers
+
+        This should be set to the maximum number of servers to return.  It defaults
+        to 1000.
+
+    See the XPA docs for more information.  This may also be called as an
+    object method.
+
+- NSLookup
+
+            @res = IPC::XPA->NSLookup( $template, $type )
+
+    This calls the XPANSLookup routine.  It returns the results of the
+    lookup as a list of references to hashes, one per server. The hashes
+    have the keys `name` `class`, and `method`.  For example,
+
+            use Data::Dumper;
+            @res = IPC::XPA->NSLookup( 'ds9', 'ls' );
+            print Dumper(\@res);
+
+    results in
+
+            $VAR1 = [
+                      {
+                        'method' => '838e2ab4:46529',
+                        'name' => 'ds9',
+                        'class' => 'DS9'
+                      }
+                    ];
+
+    Note that names returned by **NSLookup** are different than those
+    returned by the **Set** and **Get** methods; the latter return names
+    which are essentially composites of the `name` and `method` keys.
+
+    This may also be called as an object method.  See the XPA docs for
+    more information the `template` and `type` specification.
+
+- Set
+
+    The **Set** instance method (see ["Instance Methods"](#instance-methods)) can also be
+    called as a class method, which is equivalent to calling
+    **XPASet()** with a `NULL` handle to the **xpa** object.
+
+    For example,
+
+            %res = IPC::XPA->Set( $template, $paramlist );
+
+- Get
+
+    The **Get** instance method (see ["Instance Methods"](#instance-methods)) can also be
+    called as a class method, which is equivalent to calling
+    **XPAGet()** with a `NULL` handle to the **xpa** object.
+
+    For example,
+
+            %res = IPC::XPA->Get( $template, $paramlist );
+
+- Info
+
+    The **Info** instance method (see ["Instance Methods"](#instance-methods)) can also be
+    called as a class method, which is equivalent to calling
+    **XPAInfo()** with a `NULL` handle to the **xpa** object.
+
+    For example,
+
+            %res = IPC::XPA->Info( $template, $paramlist );
+
+## Instance Methods
+
+- Set
+
+            %res = $xpa->Set( $template, $paramlist );
+            %res = $xpa->Set( $template, $paramlist, $buf );
+            %res = $xpa->Set( $template, $paramlist, $buf, \%attrs );
+            %res = $xpa->Set( $template, $paramlist, \%attrs );
+
+    Send data to the XPA server(s) specified by **$template**.  **$xpa** is
+    a reference to an XPA object created by `Open()`. **$paramlist**
+    specifies the command to be performed.  If additional information is
+    to be sent, the **$buf** parameter should be specified.  The **%attrs**
+    hash specifies optional parameters and values to be sent.  The
+    following are available:
+
+    - max\_servers
+
+        The maximum number of servers to which the request should be sent. This
+        defaults to `1`.
+
+    - len
+
+        The number of bytes in the buffer to be sent.  If not set, the entire
+        contents will be sent.
+
+    - mode
+
+        The value of this is a hash containing mode keywords and values, which
+        will be translated into the string form used by **XPASet()**.
+
+    It returns a hash keyed off of the server names.  The hash values are
+    references to hashes, which will contain the key `name` (duplicating the
+    server name), and if there was an error, the key `message`.  See the
+    **XPASet** documentation for more information on the `name` and
+    `message` values.
+
+    For example,
+
+            %res = $xpa->Set( 'ds9', 'mode crosshair' );
+
+            use Data::Dumper;
+            %res = $xpa->Set( 'ds9', 'array [dim=100,bitpix=-64]', $buf, 
+                              { mode => { ack => false } });
+            print Dumper \%res, "\n";
+
+    The latter might result in:
+
+            $VAR1 = {
+              'DS9:ds9 838e2ab4:65223' => {
+                                            'name' => 'DS9:ds9 838e2ab4:65223'
+                                          },
+            };
+
+- Get
+
+            %res = $xpa->Get( $template, $paramlist );
+            %res = $xpa->Get( $template, $paramlist, \%attrs );
+
+    Retrieve data from the servers specified by the **$template**
+    parameter.  **$xpa** is a reference to an XPA object created by
+    `Open()`.  The **$paramlist** indicates which data to return.  The
+    **%attrs** hash specifies optional parameters and values to be sent.
+    The following are available:
+
+    - max\_servers
+
+        The maximum number of servers to which the request should be sent. This
+        defaults to `1`.
+
+    - mode
+
+        The value of this is a hash containing mode keywords and values, which
+        will be translated into the string form used by **XPAGet()**
+
+    It returns a hash keyed off of the server names.  The hash values are
+    references to hashes, which will have the keys `name`, indicating the
+    server's name, and `buf` which will contain the returned data.  If
+    there was an error, the hashes will also contain the key `message`.
+    See the **XPAGet** documentation for more information on the `name`
+    and `message` values.
+
+    For example,
+
+            use Data::Dumper;
+            %res = $xpa->Get( 'ds9', '-help quit' );
+            print Dumper(\%res);
+
+    might result in
+
+            $VAR1 = {
+                     'DS9:ds9 838e2ab4:46529' => {
+                        'name' => 'DS9:ds9 838e2ab4:46529',
+                        'buf' => 'quit:     -- exit application'
+                      }
+                    };
+
+- Info
+
+            %res = $xpa->Info( $template, $paramlist);
+            %res = $xpa->Info( $template, $paramlist, \%attrs );
+
+    Send a short message (in **$paramlist**) to the servers specified in
+    the **$template** parameter.  **$xpa** is a reference to an XPA object
+    created by `Open()`. The **%attrs** hash specifies optional parameters
+    and values to be sent.  The following are available:
+
+    - max\_servers
+
+        The maximum number of servers to which the request should be sent. This
+        defaults to `1`.
+
+    - mode
+
+        The value of this is a hash containing mode keywords and values, which
+        will be translated into the string form used by **XPAGet()**
+
+    It returns a hash keyed off of the server names.  The hash values are
+    references to hashes, which will contain the the key `name`,
+    indicating the server's name.  If there was an error or the server
+    replied with a message, the hashes will also contain the key
+    `message`.  See the **XPAGet** documentation for more information on
+    the `name` and `message` values.
+
+# The XPA Library
+
+The XPA library is available via the [Alien::XPA](https://metacpan.org/pod/Alien::XPA) Perl module on CPAN,
+as well as at [https://github.com/ericmandel/xpa](https://github.com/ericmandel/xpa).
+
+# BUGS AND LIMITATIONS
+
+You can make new bug reports, and view existing ones, through the
+web interface at [https://rt.cpan.org/Public/Dist/Display.html?Name=IPC-XPA](https://rt.cpan.org/Public/Dist/Display.html?Name=IPC-XPA).
+
+# AUTHOR
+
+Diab Jerius <djerius@cpan.org>
+
+# COPYRIGHT AND LICENSE
+
+This software is Copyright (c) 2017 by Smithsonian Astrophysical Observatory.
+
+This is free software, licensed under:
+
+    The GNU General Public License, Version 3, June 2007

@@ -1,48 +1,19 @@
-# --8<--8<--8<--8<--
-#
-# Copyright (C) 2000-2009 Smithsonian Astrophysical Observatory
-#
-# This file is part of IPC-XPA
-#
-# IPC-XPA is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or (at
-# your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-# -->8-->8-->8-->8--
-
-
 package IPC::XPA;
 
+# ABSTRACT: Interface to the XPA messaging system
+
 use strict;
-use Carp;
-use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
+use warnings;
 
-use Data::Dumper;
+our $VERSION = '0.10';
 
-require Exporter;
-require DynaLoader;
-
-@ISA = qw(Exporter DynaLoader);
-# Items to export into callers namespace by default. Note: do not export
-# names by default without a very good reason. Use EXPORT_OK instead.
-# Do not simply export all your public functions/methods/constants.
-@EXPORT = qw(
-	
-);
-$VERSION = '0.10';
+use parent 'DynaLoader';
 
 bootstrap IPC::XPA $VERSION;
 
-# Preloaded methods go here.
+use Carp;
+
+
 
 # default attributes for Get, Set, Info, Access
 my %def_attrs = ( max_servers => 1000, mode => {} );
@@ -196,15 +167,13 @@ sub NSLookup
   _NSLookup( $xpa, @_ );
 }
 
-# Autoload methods go after =cut, and are processed by the autosplit program.
+# COPYRIGHT
 
 1;
+
+
 __END__
-# Below is the stub of documentation for your module. You better edit it!
 
-=head1 NAME
-
-IPC::XPA - Interface to the XPA messaging system
 
 =head1 SYNOPSIS
 
@@ -521,21 +490,6 @@ the C<name> and C<message> values.
 
 =head1 The XPA Library
 
-The XPA library is available at C<http://hea-www.harvard.edu/RD/xpa/>.
+The XPA library is available via the L<Alien::XPA> Perl module on CPAN,
+as well as at L<https://github.com/ericmandel/xpa>.
 
-=head1 LICENSE
-
-This software is released under the GNU General Public License.  You
-may find a copy at 
-
-   http://www.fsf.org/copyleft/gpl.html
-
-=head1 AUTHOR
-
-Diab Jerius ( djerius@cfa.harvard.edu )
-
-=head1 SEE ALSO
-
-perl(1).
-
-=cut
