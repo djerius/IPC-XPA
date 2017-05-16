@@ -33,6 +33,7 @@ my %WriteMakefileArgs = (
   "TEST_REQUIRES" => {
     "Action::Retry" => 0,
     "Alien::XPA" => 0,
+    "Child" => 0,
     "Env" => 0,
     "ExtUtils::MakeMaker" => 0,
     "File::Spec" => 0,
@@ -41,7 +42,8 @@ my %WriteMakefileArgs = (
     "IPC::Open3" => 0,
     "Test2::Bundle::Extended" => 0,
     "Test::More" => 0,
-    "blib" => "1.01"
+    "blib" => "1.01",
+    "subs" => 0
   },
   "VERSION" => "0.11",
   "test" => {
@@ -61,6 +63,7 @@ my %FallbackPrereqs = (
   "Action::Retry" => 0,
   "Alien::XPA" => 0,
   "Carp" => 0,
+  "Child" => 0,
   "DynaLoader" => 0,
   "Env" => 0,
   "ExtUtils::MakeMaker" => 0,
@@ -74,8 +77,14 @@ my %FallbackPrereqs = (
   "namespace::clean" => 0,
   "parent" => 0,
   "strict" => 0,
+  "subs" => 0,
   "warnings" => 0
 );
+
+# inserted by Dist::Zilla::Plugin::DynamicPrereqs 0.033
+if ($^O eq 'MSWin32') {
+test_requires( 'Win32::Process' )
+}
 
 unless ( eval { ExtUtils::MakeMaker->VERSION(6.63_03) } ) {
   delete $WriteMakefileArgs{TEST_REQUIRES};

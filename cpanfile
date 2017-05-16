@@ -9,6 +9,7 @@ requires "warnings" => "0";
 on 'test' => sub {
   requires "Action::Retry" => "0";
   requires "Alien::XPA" => "0";
+  requires "Child" => "0";
   requires "Env" => "0";
   requires "ExtUtils::MakeMaker" => "0";
   requires "File::Spec" => "0";
@@ -19,6 +20,7 @@ on 'test' => sub {
   requires "Test::More" => "0";
   requires "blib" => "1.01";
   requires "perl" => "5.006";
+  requires "subs" => "0";
 };
 
 on 'test' => sub {
@@ -37,6 +39,7 @@ on 'develop' => sub {
   requires "Dist::Zilla::Plugin::CPANFile" => "0";
   requires "Dist::Zilla::Plugin::CheckMetaResources" => "0";
   requires "Dist::Zilla::Plugin::CopyFilesFromRelease" => "0";
+  requires "Dist::Zilla::Plugin::DynamicPrereqs" => "0";
   requires "Dist::Zilla::Plugin::EnsureChangesHasContent" => "0";
   requires "Dist::Zilla::Plugin::EnsurePrereqsInstalled" => "0";
   requires "Dist::Zilla::Plugin::GatherDir" => "0";

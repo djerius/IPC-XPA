@@ -11,6 +11,7 @@ use Alien::XPA;
 use Env;
 use File::Which 'which';
 use Action::Retry 'retry';
+use Child 'child';
 
 
 push @ENV, Alien::XPA->bin_dir;
@@ -33,21 +34,47 @@ if ( keys %res ) {
       if $res;
 
     $xpamb_already_running = keys %res;
-
 }
 
+my $child;
+my $nserver = 0;
+
 unless ( $xpamb_already_running ) {
-    exec( 'xpamb' ) if !fork;
+
+    if ( $^O eq 'MSWin32' ) {
+
+        require Win32::Process;
+        require File::Which;
+
+        use subs
+          qw( Win32::Process::NORMAL_PRIORITY_CLASS Win32::Process::CREATE_NO_WINDOW);
+
+        Win32::Process::Create(
+            $child,
+            File::Which::which( "xpamb" ),
+            "xpamb",
+            0,
+            Win32::Process::NORMAL_PRIORITY_CLASS
+              + Win32::Process::CREATE_NO_WINDOW,
+            "."
+        ) || die $^E;
+
+    }
+    else {
+
+        $child = child { exec( 'xpamb' ) };
+    }
 
     retry {
         %res = IPC::XPA->Access( 'XPAMB:*', "gs" );
         die unless %res;
     };
+
     bail_out( "unable to access launched xpamb: " . _extract_error( %res ) )
       unless %res;;
 }
 
-my $nserver = keys %res;
+$nserver = keys %res;
 
 # try a lookup
 my @res;
@@ -102,10 +129,31 @@ subtest "Set -del" => sub {
 
 
 END {
-    system( qw[ xpaset -p xpamb -exit ] )
-      unless $xpamb_already_running;
-}
 
+    # try to shut xpamb down nicely
+    if ( $nserver ) {
+
+        system( qw[ xpaset -p xpamb -exit ] );
+
+        retry {
+            die
+              if qx/xpaaccess 'XPAMB:*'/ =~ 'yes';
+        };
+    }
+
+    # be firm if necessary
+    if ( $^O eq 'MSWin32' ) {
+
+        use subs qw( Win32::Process::STILL_ACTIVE );
+
+        $child->GetExitCode( my $exitcode );
+        $child->Kill( 0 ) if $exitcode == Win32::Process::STILL_ACTIVE;
+    }
+
+    else {
+        $child->kill( 9 ) unless $child->is_complete;
+    }
+}
 
 done_testing;
 
