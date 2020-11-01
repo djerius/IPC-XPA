@@ -1,85 +1,70 @@
 #! perl
 
-use strict;
-use warnings;
+use Test2::V0;
+use Env qw( @PATH );
 
-use Test2::Bundle::Extended;
 
-use IPC::XPA;
-
-use Alien::XPA;
-use Env;
 use File::Which 'which';
 use Action::Retry 'retry';
 use Child 'child';
 
+use IPC::XPA;
+use Alien::XPA;
 
-push @ENV, Alien::XPA->bin_dir;
+sub xpamb_is_running;
+sub shutdown_xpamb;
 
-bail_out( "can't find xpamb executable" )
-  unless which( 'xpamb' );
+push @PATH, Alien::XPA->bin_dir;
 
-# see if an xpamb instance is already running
-my %res;
+bail_out( "can't find $_ executable" )
+  foreach grep { ! defined which( $_ ) } qw( xpamb xpaset xpaaccess );
 
-%res = IPC::XPA->Access( 'XPAMB:*', "gs" );
-
-my $xpamb_already_running;
-
-if ( keys %res ) {
-
-    my ( $res ) = grep { defined $_->{message} } values %res;
-
-    bail_out( "error in XPAACCESS: " . $res->{message} )
-      if $res;
-
-    $xpamb_already_running = keys %res;
-}
+shutdown_xpamb if xpamb_is_running;
 
 my $child;
 my $nserver = 0;
 
-unless ( $xpamb_already_running ) {
-
-    if ( $^O eq 'MSWin32' ) {
-
+if ( $^O eq 'MSWin32' ) {
         require Win32::Process;
-        require File::Which;
-
         use subs
           qw( Win32::Process::NORMAL_PRIORITY_CLASS Win32::Process::CREATE_NO_WINDOW);
 
         Win32::Process::Create(
             $child,
-            File::Which::which( "xpamb" ),
+            which( "xpamb" ),
             "xpamb",
             0,
             Win32::Process::NORMAL_PRIORITY_CLASS
               + Win32::Process::CREATE_NO_WINDOW,
             "."
         ) || die $^E;
-
     }
-    else {
-
-        $child = child { exec( 'xpamb' ) };
-    }
-
-    retry {
-        %res = IPC::XPA->Access( 'XPAMB:*', "gs" );
-        die unless %res;
-    };
-
-    bail_out( "unable to access launched xpamb: " . _extract_error( %res ) )
-      unless %res;;
+else {
+    $child = child { exec { 'xpamb' } 'xpamb'  };
 }
 
-$nserver = keys %res;
+my $xpamb_is_running;
+
+retry {
+    $xpamb_is_running = xpamb_is_running;
+    die unless $xpamb_is_running;
+};
+
+bail_out( "unable to access launched xpamb" )
+  unless $xpamb_is_running;
+
+my %res = access( 'XPAMB:*', "gs" );
+is ( ($nserver = keys %res), 1, "expected number of xpamb servers" );
 
 # try a lookup
-my @res;
-ok( lives { @res = IPC::XPA->NSLookup( 'xpamb', 'ls' ) } )
-  or diag $@;
+subtest lookup => sub {
+
+    my @res;
+    ok( lives { @res = IPC::XPA->NSLookup( 'xpamb', 'ls' ) }, "nslookup"  )
+      or diag $@;
+
+    is ( scalar @res, 1, "correct number of servers" );
+};
 
 # create a handle
 
@@ -91,77 +76,162 @@ my $name = "IPC::XPA";
 my $data = "IPC::XPA Test Data\n";
 
 subtest "Set -data" => sub {
-    %res = $xpa->Set( 'xpamb', "-data $name", $data );
+    my %res;
+    ok( lives { %res = $xpa->Set( 'xpamb', "-data $name", $data )}, "Set data"  )
+      or diag $@;
+
+    my $error = _xpa_error( %res );
+    is ( $error, undef, "no errors " )
+      or diag $error;
 
     is( keys %res, $nserver, "Set to $nserver servers" );
-
-    my $error = _extract_error( %res );
-    is( $error, '', "no error" );
 };
 
 subtest "Get -data" => sub {
-    %res = $xpa->Get( 'xpamb', "-data $name" );
+    my %res;
+    ok( lives { %res = $xpa->Get( 'xpamb', "-data $name" ) }, "Get data"  )
+      or diag $@;
+
+    my $error = _xpa_error( %res );
+    is ( $error, undef, "no errors " )
+      or diag $error;
 
     is( keys %res, $nserver, "Get from $nserver servers" );
 
-    my $error = _extract_error( %res );
-    is( $error, '', "no error" );
     my $rdata = ( values %res ) [0]->{buf};
-
     is( $rdata, $data, "retrieved data" );
 };
 
 subtest "Set -del" => sub {
-    %res = $xpa->Set( 'xpamb', "-del $name", $data );
+    my %res;
+    ok( lives { %res =  $xpa->Set( 'xpamb', "-del $name" ) }, "Set -del"  )
+      or diag $@;
+    my $error = _xpa_error( %res );
+    is ( $error, undef, "no errors " )
+      or diag $error;
 
     is( keys %res, $nserver, "Set to $nserver servers" );
 
-    my $error = _extract_error( %res );
-    is( $error, '', "no error" );
-
-    %res = $xpa->Get( 'xpamb', "-data $name" );
-
-    is( keys %res, $nserver, "Get from $nserver servers" );
-
-    $error = _extract_error( %res );
-    like( $error, qr/unknown xpamb entry: $name/, "deleted" );
+    ok( lives { %res = $xpa->Get( 'xpamb', "-data $name" ) }, "Get data"  )
+      or diag $@;
+    like( _xpa_error( %res ), qr/unknown xpamb entry: $name/, "deleted" );
 };
 
+# see if an xpamb instance is already running check both via our
+# XS interface as well as via the command line.
+sub xpamb_is_running {
+    my ( $xs_is_running, $cli_is_running );
 
-END {
+    retry {
+        my %res = access( 'XPAMB:*', "gs" );
+        $xs_is_running = !!keys %res;
+        my $run = run( 'xpaaccess', 'XPAMB:*' );
+        $cli_is_running = $run->out =~ 'yes';
+        die if $xs_is_running != $cli_is_running;
+    };
 
-    # try to shut xpamb down nicely
-    if ( $nserver ) {
+    bail_out( "xpamb_is_running: XS and CLI return different results" )
+      unless $xs_is_running == $cli_is_running;
+    return $xs_is_running;
+}
 
-        system( qw[ xpaset -p xpamb -exit ] );
+sub shutdown_xpamb {
+    my $xpamb_is_running;
+
+    # first try using XS
+    retry {
+        $xpamb_is_running = xpamb_is_running();
+        return unless $xpamb_is_running;
+
+        my $xpa = IPC::XPA->Open( { verify => 'true' } );
+        return if ! defined $xpa;
+
+        $xpa->Set( 'xpamb', '-exit' );
+        die;
+    };
+
+    return unless $xpamb_is_running;
+    diag "unable to use XS to shutdown xpamb";
+
+    # now try using the xpaset executable
+    retry {
+        $xpamb_is_running = xpamb_is_running();
+        return unless $xpamb_is_running;
+        run( 'xpaset', qw [ -p xpamb -exit ] );
+        die;
+    };
+
+    return unless $xpamb_is_running;
+
+    diag "unable to use xpaset to shutdown xpamb";
+
+    # be firm if necessary
+    if ( defined $child ) {
+
+        diag( "force remove our xpamb" );
 
         retry {
-            die
-              if qx/xpaaccess 'XPAMB:*'/ =~ 'yes';
+
+            if ( $^O eq 'MSWin32' ) {
+                use subs qw( Win32::Process::STILL_ACTIVE );
+                $child->GetExitCode( my $exitcode );
+                $child->Kill( 0 ) if $exitcode == Win32::Process::STILL_ACTIVE;
+            }
+
+            else {
+                $child->kill( 9 ) unless $child->is_complete;
+            }
+
+            if ( run( 'xpaaccess', 'XPAMB:*' )->out !~ 'yes' ) {
+                $xpamb_is_running = 0;
+                return;
+            }
+            die;
         };
     }
 
-    # be firm if necessary
-    if ( $^O eq 'MSWin32' ) {
+    bail_out( "unable to remove xpamb" )
+      if $xpamb_is_running;
+}
 
-        use subs qw( Win32::Process::STILL_ACTIVE );
+{
+    package MyRun;
+    use Capture::Tiny qw( capture );
 
-        $child->GetExitCode( my $exitcode );
-        $child->Kill( 0 ) if $exitcode == Win32::Process::STILL_ACTIVE;
+    sub new {
+        my ( $class, @args ) = @_;
+        my ( $out, $err, $exit ) = capture { system { $args[0] } @args; $?; };
+        return bless {
+            out  => $out,
+            err  => $err,
+            exit => $exit,
+        }, $class;
     }
 
-    else {
-        $child->kill( 9 ) unless $child->is_complete;
-    }
+    sub out  { $_[0]->{out} }
+    sub err  { $_[0]->{err} }
+    sub exit { $_[0]->{exit} }
+}
+
+END {
+    shutdown_xpamb;
 }
 
 done_testing;
 
+sub run { MyRun->new( @_ ) }
 
-sub _extract_error {
+sub access {
+    my %res = IPC::XPA->Access( @_ );
+    my $error = _xpa_error( %res );
+    bail_out( "error in XPAACCESS: $error" )
+          if defined $error;
+    return %res;
+}
 
+sub _xpa_error {
     my ( %res ) = @_;
-
-    return
-      join( ' ', map $_->{message}, grep defined $_->{message}, values %res )
+    my @msgs = map $_->{message}, grep defined $_->{message}, values %res;
+    return join( ' ', @msgs ) if @msgs;
+    return;
 }
