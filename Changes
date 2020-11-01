@@ -2,6 +2,17 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.12      2020-11-01 17:26:06-05:00 America/New_York
+
+  [TEST]
+
+    * clean up tests; shutdown server more resolutely
+
+  [BUILD]
+
+    * upgrade tooling
+    * switch repo to gitlab
+
 0.11      2017-05-12 16:22:09-04:00 America/New_York
 
   [BUILD]
