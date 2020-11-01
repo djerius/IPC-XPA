@@ -295,10 +295,21 @@ routines with `XPA`).
 The XPA library is available via the [Alien::XPA](https://metacpan.org/pod/Alien::XPA) Perl module on CPAN,
 as well as at [https://github.com/ericmandel/xpa](https://github.com/ericmandel/xpa).
 
-# BUGS AND LIMITATIONS
+# SUPPORT
 
-You can make new bug reports, and view existing ones, through the
-web interface at [https://rt.cpan.org/Public/Dist/Display.html?Name=IPC-XPA](https://rt.cpan.org/Public/Dist/Display.html?Name=IPC-XPA).
+## Bugs
+
+Please report any bugs or feature requests to bug-ipc-xpa@rt.cpan.org  or through the web interface at: https://rt.cpan.org/Public/Dist/Display.html?Name=IPC-XPA
+
+## Source
+
+Source is available at
+
+    https://gitlab.com/djerius/ipc-xpa
+
+and may be cloned from
+
+    https://gitlab.com/djerius/ipc-xpa.git
 
 # AUTHOR
 
