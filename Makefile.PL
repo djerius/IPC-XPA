@@ -94,3 +94,23 @@ delete $WriteMakefileArgs{CONFIGURE_REQUIRES}
   unless eval { ExtUtils::MakeMaker->VERSION(6.52) };
 
 WriteMakefile(%WriteMakefileArgs);
+
+# inserted by Dist::Zilla::Plugin::DynamicPrereqs 0.036
+sub _add_prereq {
+  my ($mm_key, $module, $version_or_range) = @_;
+  $version_or_range ||= 0;
+  warn "$module already exists in $mm_key (at version $WriteMakefileArgs{$mm_key}{$module}) -- need to do a sane metamerge!"
+    if exists $WriteMakefileArgs{$mm_key}{$module}
+      and $WriteMakefileArgs{$mm_key}{$module} ne '0'
+      and $WriteMakefileArgs{$mm_key}{$module} ne $version_or_range;
+  warn "$module already exists in FallbackPrereqs (at version $FallbackPrereqs{$mm_key}{$module}) -- need to do a sane metamerge!"
+    if exists $FallbackPrereqs{$module} and $FallbackPrereqs{$module} ne '0'
+        and $FallbackPrereqs{$module} ne $version_or_range;
+  $WriteMakefileArgs{$mm_key}{$module} = $FallbackPrereqs{$module} = $version_or_range;
+  return;
+}
+
+sub test_requires {
+  my ($module, $version_or_range) = @_;
+  _add_prereq(TEST_REQUIRES => $module, $version_or_range);
+}
